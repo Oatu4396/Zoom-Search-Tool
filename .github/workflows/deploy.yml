@@ -1,0 +1,36 @@
+name: Deploy website
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Update website on EC2
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
+
+          ssh -i ~/.ssh/deploy_key "ec2-user@$EC2_HOST" <<'REMOTE'
+          set -euo pipefail
+          cd /home/ec2-user/Zoom-Search-Tool
+          git pull --ff-only origin main
+          REMOTE
