@@ -1,0 +1,2370 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Zoom Search Tool · Four groups</title>
+    <style>
+      /* Theme tokens, page layout, controls, plots, and responsive layout. */
+      /* Theme tokens and base typography. */
+      :root {
+        font:
+          13px/1.5 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        color: var(--text);
+        background: var(--bg);
+        --line: #30363d;
+        --accent: #388bfd;
+        --bg: #0d1117;
+        --panel: #161b22;
+        --text: #e6edf3;
+        --muted: #8b949e;
+        --label: #b1bac4;
+        --button: #21262d;
+        --hover: #30363d;
+        --subtle: #21262d;
+        --danger: #ff7b72;
+        --link: #58a6ff;
+        --axis: #484f58;
+        --plot1: #58a6ff;
+        --plot2: #d29922;
+        --ray-edge: #f0883e;
+        --plot3: #bc8cff;
+        --plot4: #f778ba;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      header {
+        background: var(--panel);
+        border-bottom: 1px solid var(--line);
+        padding: 20px 28px;
+      }
+      h1 {
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: -0.5px;
+        margin: 4px 0;
+      }
+      h2 {
+        font-size: 14px;
+        font-weight: 600;
+        margin: 0 0 14px;
+      }
+      main {
+        padding: 20px;
+        max-width: 2100px;
+        margin: auto;
+      }
+      /* Page and form layout. */
+      .workspace {
+        display: grid;
+        grid-template-columns: 320px minmax(0, 1fr);
+        gap: 16px;
+      }
+      .workspace > *,
+      .solutions > * {
+        min-width: 0;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        align-items: end;
+      }
+      .grid > label {
+        min-width: 0;
+      }
+      input[type="number"],
+      select {
+        height: 34px;
+      }
+      select {
+        appearance: none;
+        padding-right: 28px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m3 4.5 3 3 3-3' fill='none' stroke='%238b949e' stroke-width='1.5'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 9px center;
+      }
+      .card > p:last-child {
+        margin-bottom: 0;
+      }
+      .group-controls {
+        display: grid;
+        gap: 18px;
+      }
+      .focal-slider {
+        margin: 8px 0;
+      }
+      .focal-values {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        align-items: end;
+      }
+      .focal-values label {
+        min-width: 0;
+      }
+      .group-heading {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .group-heading input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        margin: 0;
+        flex-shrink: 0;
+        accent-color: var(--accent);
+      }
+      .spherical-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .spherical-option input {
+        width: 16px;
+        height: 16px;
+        margin: 0;
+        flex-shrink: 0;
+        accent-color: var(--accent);
+      }
+      .wide {
+        grid-column: 1/-1;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        color: var(--label);
+      }
+      input,
+      select,
+      button {
+        font: inherit;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: 6px 8px;
+        background-color: var(--bg);
+        color: var(--text);
+      }
+      input,
+      select {
+        width: 100%;
+        min-width: 0;
+        margin-top: 4px;
+      }
+      input:focus,
+      select:focus,
+      button:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
+      }
+      input[type="range"] {
+        padding: 0;
+        accent-color: var(--accent);
+      }
+      button {
+        cursor: pointer;
+        background: var(--button);
+        font-weight: 500;
+      }
+      button:hover {
+        background: var(--hover);
+        border-color: var(--muted);
+      }
+      .buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+      .muted,
+      small {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .tag {
+        color: var(--muted);
+        font:
+          11px ui-monospace,
+          SFMono-Regular,
+          Consolas,
+          monospace;
+        letter-spacing: 0.7px;
+      }
+      /* Solution cards, tables, and SVG plots. */
+      .status {
+        margin: 12px 0;
+        color: var(--label);
+        font-size: 12px;
+      }
+      .status:empty {
+        display: none;
+      }
+      .solutions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+      .solution-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+      .solution-heading h2 {
+        font-size: 16px;
+        margin: 0;
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 16px;
+      }
+      .metric input {
+        font:
+          18px ui-monospace,
+          SFMono-Regular,
+          Consolas,
+          monospace;
+      }
+      .metric label {
+        color: var(--muted);
+      }
+      .metric {
+        background: var(--bg);
+        border: 1px solid var(--subtle);
+        border-radius: 4px;
+        padding: 10px;
+      }
+      .metric strong {
+        display: block;
+        font:
+          18px ui-monospace,
+          SFMono-Regular,
+          Consolas,
+          monospace;
+        margin-top: 4px;
+      }
+      svg {
+        width: 100%;
+        display: block;
+        overflow: hidden;
+      }
+      svg text {
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: 11px;
+        fill: var(--muted);
+      }
+      .scroll {
+        overflow: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font:
+          11px/1.6 ui-monospace,
+          SFMono-Regular,
+          Consolas,
+          monospace;
+        text-align: right;
+        white-space: nowrap;
+      }
+      th,
+      td {
+        padding: 8px;
+        border-bottom: 1px solid var(--line);
+      }
+      th {
+        color: var(--muted);
+        font-weight: 500;
+      }
+      td:first-child,
+      th:first-child {
+        text-align: left;
+      }
+      .error {
+        color: var(--danger);
+      }
+      details summary {
+        cursor: pointer;
+        font-weight: 600;
+      }
+      details p {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      a {
+        color: var(--link);
+      }
+      #error {
+        color: var(--danger);
+      }
+      #error:not(:empty) {
+        padding-bottom: 12px;
+      }
+      /* Responsive layout. */
+      @media (max-width: 1100px) {
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+        .workspace > aside {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+        .workspace > aside .card {
+          margin-bottom: 0;
+        }
+      }
+      @media (max-width: 700px) {
+        .metrics {
+          grid-template-columns: 1fr 1fr;
+        }
+        main {
+          padding: 10px;
+        }
+        .workspace > aside {
+          grid-template-columns: 1fr;
+        }
+        .solutions {
+          overflow-x: auto;
+          grid-template-columns: repeat(2, minmax(320px, 1fr));
+        }
+        .card {
+          padding: 12px;
+        }
+      }
+
+      /* Explicit and system-selected light appearance use the same palette. */
+      :root[data-theme="light"] {
+        --line: #d0d7de;
+        --accent: #0969da;
+        --bg: #ffffff;
+        --panel: #f6f8fa;
+        --text: #1f2328;
+        --muted: #656d76;
+        --label: #424a53;
+        --button: #f6f8fa;
+        --hover: #eaeef2;
+        --subtle: #d8dee4;
+        --danger: #cf222e;
+        --link: #0969da;
+        --axis: #8c959f;
+        --plot1: #0969da;
+        --plot2: #9a6700;
+        --ray-edge: #bc4c00;
+        --plot3: #8250df;
+        --plot4: #bf3989;
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: light) {
+        :root:not([data-theme="dark"]):not([data-theme="light"]) {
+          --line: #d0d7de;
+          --accent: #0969da;
+          --bg: #ffffff;
+          --panel: #f6f8fa;
+          --text: #1f2328;
+          --muted: #656d76;
+          --label: #424a53;
+          --button: #f6f8fa;
+          --hover: #eaeef2;
+          --subtle: #d8dee4;
+          --danger: #cf222e;
+          --link: #0969da;
+          --axis: #8c959f;
+          --plot1: #0969da;
+          --plot2: #9a6700;
+          --ray-edge: #bc4c00;
+          --plot3: #8250df;
+          --plot4: #bf3989;
+          color-scheme: light;
+        }
+      }
+      header {
+        position: relative;
+        padding-right: 80px;
+      }
+      .appearance {
+        position: absolute;
+        top: 20px;
+        right: 28px;
+        width: 34px;
+        height: 34px;
+        padding: 7px;
+        display: grid;
+        place-items: center;
+      }
+      .appearance svg {
+        width: 18px;
+        height: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <button
+        class="appearance"
+        id="appearance"
+        type="button"
+        aria-label="Appearance: Light. Switch to Dark"
+        title="Light · switch to Dark"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="4" />
+          <path
+            d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"
+          />
+        </svg></button
+      ><span class="tag">OPT 544 / FINAL PROJECT</span>
+      <h1>Zoom Search Tool</h1>
+    </header>
+    <main>
+      <div id="error" role="alert"></div>
+      <div class="workspace">
+        <aside>
+          <!-- Shared system inputs and CODE V export settings. -->
+          <section class="card">
+            <h2>System targets</h2>
+            <div class="grid">
+              <label
+                >Short EFL [mm]<input
+                  id="short"
+                  type="number"
+                  value="35"
+                  step="1" /></label
+              ><label
+                >Long EFL [mm]<input
+                  id="long"
+                  type="number"
+                  value="210"
+                  step="1"
+              /></label>
+              <label
+                >Total track [mm]<input
+                  id="length"
+                  type="number"
+                  value="210" /></label
+              ><label
+                >Rear group → image [mm]<input
+                  id="bfl"
+                  type="number"
+                  value="30"
+              /></label>
+              <label
+                >F/# at short end<input
+                  id="fshort"
+                  type="number"
+                  value="4"
+                  step="0.1" /></label
+              ><label
+                >F/# at long end<input
+                  id="flong"
+                  type="number"
+                  value="5.6"
+                  step="0.1"
+              /></label>
+              <label class="wide"
+                >Image height [mm]<input
+                  id="imageHeight"
+                  type="number"
+                  value="10.8"
+                  step="0.1"
+              /></label>
+            </div>
+            <p class="muted">
+              Object at infinity in air. G1 at z = 0; G4 at track − rear
+              distance; image at track. All positions are thin-group principal
+              planes. Image height is fixed through zoom (10.8 mm for Micro Four
+              Thirds or 21.6 mm for full-frame diagonal coverage).
+            </p>
+          </section>
+          <section class="card">
+            <h2>Group focal lengths</h2>
+            <div class="group-controls" id="powers"></div>
+          </section>
+          <section class="card">
+            <h2>CODE V seed</h2>
+            <div class="grid">
+              <label
+                >Lenses per group<select id="count">
+                  <option>3</option>
+                  <option>4</option>
+                  <option>5</option>
+                </select></label
+              ><label
+                >Lens thickness [mm]<input
+                  id="thick"
+                  type="number"
+                  value="0"
+                  step="0.1" /></label
+              ><label
+                >Positive-lens index<input
+                  id="npos"
+                  type="number"
+                  value="1.75"
+                  step="0.01" /></label
+              ><label
+                >Negative-lens index<input
+                  id="nneg"
+                  type="number"
+                  value="1.52"
+                  step="0.01"
+              /></label>
+            </div>
+            <div class="grid" style="margin-top: 12px">
+              <label class="wide"
+                >Wavelength [nm]
+                <select id="wavelengthPreset">
+                  <option value="mono">Monochromatic · 587.5618</option>
+                  <option value="dfc" selected>
+                    dFC · 587.5618 / 486.1327 / 656.2725
+                  </option>
+                  <option value="efc">
+                    eFC · 546.0740 / 486.1327 / 656.2725
+                  </option>
+                  <option value="lwir">LWIR · 8000 / 10000 / 12000</option>
+                  <option value="mwir">MWIR · 3000 / 4000 / 5000</option>
+                </select>
+              </label>
+              <label
+                >Field count (equal area)
+                <select id="fieldCount">
+                  <option>3</option>
+                  <option>5</option>
+                  <option>7</option>
+                  <option>9</option>
+                  <option>11</option>
+                </select>
+              </label>
+              <label>
+                Zoom positions
+                <input
+                  id="zoomCount"
+                  type="number"
+                  value="3"
+                  min="2"
+                  step="1"
+                />
+              </label>
+            </div>
+            <label class="spherical-option">
+              <input id="sphericalCorrection" type="checkbox" />
+              Spherical correction (experimental)
+            </label>
+            <p class="muted">
+              Symmetric singlets touch within each group. Private glasses use
+              the entered indices at every preset wavelength (no dispersion
+              model). Finite thickness changes principal planes and group power:
+              this is an optimization seed, not a validated equivalent lens.
+              Group crossings export as negative air thicknesses.
+            </p>
+          </section>
+        </aside>
+        <div>
+          <section class="card">
+            <h2>Zoom position · both solutions</h2>
+            <div style="display: flex; align-items: center; gap: 16px">
+              <span>Short</span
+              ><input
+                id="zoom"
+                aria-label="Zoom position"
+                type="range"
+                step="any"
+                min="0"
+                max="1000"
+                value="0"
+              /><span>Long</span>
+            </div>
+            <div class="buttons">
+              <button data-zoom="0">Short end</button
+              ><button data-zoom="500">Middle</button
+              ><button data-zoom="1000">Long end</button>
+            </div>
+            <div class="metrics">
+              <div class="metric">
+                <label
+                  >EFL [mm]<input id="currentEfl" type="number" step="any"
+                /></label>
+              </div>
+              <div class="metric">
+                <label
+                  >F/#<input
+                    id="currentFnumber"
+                    type="number"
+                    step="any"
+                    title="Editing sets the same F/# throughout zoom"
+                /></label>
+              </div>
+              <div class="metric">
+                <small>Petzval [mm⁻¹]</small
+                ><strong id="sharedPetzval"></strong>
+              </div>
+              <div class="metric">
+                <small>Σφ² [mm⁻²]</small><strong id="sharedPower2"></strong>
+              </div>
+            </div>
+          </section>
+          <!-- Both roots share the zoom controls above; each panel owns its layout and plots. -->
+          <!-- Mirrored solution panels: element IDs end in the zero-based branch index. -->
+          <div class="solutions">
+            <section class="solution" aria-label="Solution 1">
+              <section class="card">
+                <div class="solution-heading">
+                  <h2>Solution 1</h2>
+                  <button data-export="0">Export .seq</button>
+                </div>
+                <p id="status0" class="status" aria-live="polite"></p>
+              </section>
+              <section class="card">
+                <h2>Paraxial layout</h2>
+                <svg
+                  id="layout0"
+                  viewBox="0 0 900 310"
+                  aria-label="Solution 1 paraxial rays and group positions"
+                ></svg>
+                <p class="muted">
+                  Blue: center-field bundle; orange: edge-field bundle. Each
+                  includes upper/lower meridional rays and the chief ray. Stop
+                  location is set in Group focal lengths. Crossed layouts are
+                  algebraic configurations.
+                </p>
+                <div class="scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Group</th>
+                        <th>z [mm]</th>
+                        <th>f [mm]</th>
+                        <th title="G1 → G2, G2 → G3, G3 → G4, G4 → image">
+                          Thickness [mm]
+                        </th>
+                        <th>Max incident [°]</th>
+                        <th>Max ray height [mm]</th>
+                      </tr>
+                    </thead>
+                    <tbody id="groupRows0"></tbody>
+                  </table>
+                </div>
+              </section>
+              <section class="card">
+                <h2>Motion & crossings</h2>
+                <svg id="motion0" viewBox="0 0 540 280"></svg>
+              </section>
+              <section class="card">
+                <h2>Incident angles</h2>
+                <svg id="angles0" viewBox="0 0 540 280"></svg>
+              </section>
+              <section class="card">
+                <h2>Stop diameter</h2>
+                <svg id="aperture0" viewBox="0 0 540 280"></svg>
+              </section>
+            </section>
+            <section class="solution" aria-label="Solution 2">
+              <section class="card">
+                <div class="solution-heading">
+                  <h2>Solution 2</h2>
+                  <button data-export="1">Export .seq</button>
+                </div>
+                <p id="status1" class="status" aria-live="polite"></p>
+              </section>
+              <section class="card">
+                <h2>Paraxial layout</h2>
+                <svg
+                  id="layout1"
+                  viewBox="0 0 900 310"
+                  aria-label="Solution 2 paraxial rays and group positions"
+                ></svg>
+                <p class="muted">
+                  Blue: center-field bundle; orange: edge-field bundle. Each
+                  includes upper/lower meridional rays and the chief ray. Stop
+                  location is set in Group focal lengths. Crossed layouts are
+                  algebraic configurations.
+                </p>
+                <div class="scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Group</th>
+                        <th>z [mm]</th>
+                        <th>f [mm]</th>
+                        <th title="G1 → G2, G2 → G3, G3 → G4, G4 → image">
+                          Thickness [mm]
+                        </th>
+                        <th>Max incident [°]</th>
+                        <th>Max ray height [mm]</th>
+                      </tr>
+                    </thead>
+                    <tbody id="groupRows1"></tbody>
+                  </table>
+                </div>
+              </section>
+              <section class="card">
+                <h2>Motion & crossings</h2>
+                <svg id="motion1" viewBox="0 0 540 280"></svg>
+              </section>
+              <section class="card">
+                <h2>Incident angles</h2>
+                <svg id="angles1" viewBox="0 0 540 280"></svg>
+              </section>
+              <section class="card">
+                <h2>Stop diameter</h2>
+                <svg id="aperture1" viewBox="0 0 540 280"></svg>
+              </section>
+            </section>
+          </div>
+          <section class="card" style="margin-top: 18px">
+            <h2>Solution comparison</h2>
+            <p class="muted">
+              Roots are continued by nearest pair of positions; an interval
+              without real roots breaks the branch. Missing roots and group
+              crossings remain visible. Maximum and RMS angles use 101 zoom
+              samples, both pupil edges, and ±field plus on-axis rays.
+            </p>
+            <div class="scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Solution</th>
+                    <th>Real samples</th>
+                    <th>Min gap [mm]</th>
+                    <th>Σφ/n</th>
+                    <th>Σφ²</th>
+                    <th>Max / RMS angle [°]</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="results"></tbody>
+              </table>
+            </div>
+          </section>
+          <details class="card">
+            <summary>Model & conventions</summary>
+            <p>
+              Ray vector [height, slope], translation T(d) = [[1,d],[0,1]], thin
+              group L(φ) = [[1,0],[−φ,1]]. For system matrix [A,B;C,D] through
+              G4, EFL = −1/C and fixed-image focus requires A + bC = 0.
+              Eliminating G3 position gives a quadratic in G2 position. Both
+              finite real roots are retained and verified against the system
+              matrix, including roots outside the ordered group interval.
+            </p>
+            <p>
+              The Petzval estimate uses Σφᵢ/nᵢ and the squared-power sum uses
+              Σφᵢ². These are first-order proxies; no aberration, tolerance,
+              finite-element collision, or real-surface AOI prediction is
+              implied. F/# varies linearly with requested EFL. The pupil is
+              aimed at the selected group; incident slope is measured
+              immediately before each thin group. Root coverage and extrema are
+              sampled, not a proof between samples.
+            </p>
+            <p>
+              CODE V private-glass convention:
+              <a
+                href="https://www.hajim.rochester.edu/optics/sites/moore/downloads/download_content/grin_design_tools/A%20Guide%20for%20Designing%20with%20Spherical%20Gradients%20in%20Code%20V.pdf"
+                target="_blank"
+                rel="noopener"
+                >University of Rochester CODE V guide</a
+              >. Native CODE V execution is required to verify the exported
+              seed.
+            </p>
+          </details>
+        </div>
+      </div>
+    </main>
+    <script>
+      "use strict";
+      /*
+       * Single-file Zoom Search Tool
+       *
+       * Editing guide:
+       *   - Change the initial group powers in DEFAULT_GROUP_FOCAL_LENGTHS below.
+       *   - Initial system/export values live in the HTML input elements above.
+       *   - Sections 2–3 implement the thin-group model and branch continuation.
+       *   - Sections 4–5 build the spherical-singlet seed exported to CODE V.
+       *   - Sections 6–8 connect calculations to the UI; they do not alter the optics.
+       *
+       * Units: distances and focal lengths in mm, wavelengths in nm, displayed angles
+       * in degrees. Ray slope is tan(angle); matrices use [height, slope] in air.
+       * Both roots retain crossed groups and signed axial gaps.
+       */
+
+      /**
+       * @typedef {Object} SystemConfig
+       * @property {number} shortEfl
+       * @property {number} longEfl
+       * @property {number} totalTrack G1-to-image distance.
+       * @property {number} backFocalDistance G4-to-image distance.
+       * @property {number} fixedGroupSeparation G1-to-G4 distance.
+       * @property {number} shortFNumber
+       * @property {number} longFNumber
+       * @property {number} imageHeight Fixed edge-field image radius.
+       * @property {number} positiveIndex Index used for positive seed lenses.
+       * @property {number} negativeIndex Index used for negative seed lenses.
+       * @property {number[]} groupFocalLengths Signed focal lengths of G1..G4.
+       */
+
+      // Constants and browser state. Stop and branch indices are zero-based.
+      // state = {config, branches, layoutHalfHeights}; the table summarizes both branches.
+
+      const DEFAULT_GROUP_FOCAL_LENGTHS = [90, -48, 50, -190];
+
+      const getElement = (id) => document.getElementById(id),
+        GROUP_COLORS = [
+          "var(--plot1)",
+          "var(--plot2)",
+          "var(--plot3)",
+          "var(--plot4)",
+        ],
+        SVG_NAMESPACE = "http://www.w3.org/2000/svg";
+
+      let state = null,
+        stopGroupIndex = 0;
+
+      const WAVELENGTH_PRESETS = {
+        mono: {
+          wavelengths: [587.5618],
+          reference: 1,
+        },
+        dfc: {
+          wavelengths: [587.5618, 486.1327, 656.2725],
+          reference: 2,
+        },
+        efc: {
+          wavelengths: [546.074, 486.1327, 656.2725],
+          reference: 2,
+        },
+        lwir: {
+          wavelengths: [8000, 10000, 12000],
+          reference: 2,
+        },
+        mwir: {
+          wavelengths: [3000, 4000, 5000],
+          reference: 2,
+        },
+      };
+
+      const ZOOM_SAMPLE_COUNT = 101;
+      const ZOOM_INTERVAL_COUNT = ZOOM_SAMPLE_COUNT - 1;
+      const ZOOM_SLIDER_MAX = 1000;
+
+      // 1. Inputs and settings
+      // ----------------------
+
+      // Read one numeric UI value and retain the existing input error behavior.
+
+      function readNumber(id) {
+        const value = Number(getElement(id).value);
+        if (!getElement(id).value.trim() || !Number.isFinite(value)) {
+          throw Error(
+            "Enter a finite value for " +
+              getElement(id).parentElement.textContent.trim(),
+          );
+        }
+        return value;
+      }
+
+      // Read the shared thin-group system. Export settings are read separately.
+
+      function readInputs() {
+        const config = {
+          shortEfl: readNumber("short"),
+          longEfl: readNumber("long"),
+          totalTrack: readNumber("length"),
+          backFocalDistance: readNumber("bfl"),
+          shortFNumber: readNumber("fshort"),
+          longFNumber: readNumber("flong"),
+          imageHeight: readNumber("imageHeight"),
+          positiveIndex: readNumber("npos"),
+          negativeIndex: readNumber("nneg"),
+          groupFocalLengths: [0, 1, 2, 3].map((i) => readNumber("f" + i)),
+        };
+        config.fixedGroupSeparation =
+          config.totalTrack - config.backFocalDistance;
+        if (
+          config.shortEfl <= 0 ||
+          config.longEfl < config.shortEfl ||
+          config.backFocalDistance <= 0 ||
+          config.fixedGroupSeparation <= 0 ||
+          config.shortFNumber <= 0 ||
+          config.longFNumber <= 0 ||
+          config.groupFocalLengths.some((f) => !f) ||
+          config.positiveIndex <= 1 ||
+          config.negativeIndex <= 1 ||
+          config.imageHeight < 0
+        ) {
+          throw Error(
+            "Use positive EFL, F/# and distances; long EFL ≥ short EFL; track > rear distance; nonzero group focal lengths; indices > 1; nonnegative image height.",
+          );
+        }
+        return config;
+      }
+
+      // Read seed-only controls; these do not change the thin-group zoom solution.
+
+      function readExportSettings() {
+        const settings = {
+          lensCount: Number(getElement("count").value),
+          lensThickness: readNumber("thick"),
+          zoomCount: readNumber("zoomCount"),
+          correctSpherical: getElement("sphericalCorrection").checked,
+          wavelengthPreset: getElement("wavelengthPreset").value,
+          fieldCount: Number(getElement("fieldCount").value),
+        };
+        if (settings.lensThickness < 0) {
+          throw Error("Lens thickness must be nonnegative.");
+        }
+        if (settings.correctSpherical && settings.lensThickness !== 0) {
+          throw Error("Spherical correction requires zero lens thickness.");
+        }
+        if (!Number.isInteger(settings.zoomCount) || settings.zoomCount < 2) {
+          throw Error("Zoom positions must be an integer of at least 2.");
+        }
+        return settings;
+      }
+
+      // 2. First-order optics
+      // ---------------------
+
+      // Multiply flat [A, B, C, D] matrices acting on [height, slope].
+
+      function multiplyMatrices(a, b) {
+        return [
+          a[0] * b[0] + a[1] * b[2],
+          a[0] * b[1] + a[1] * b[3],
+          a[2] * b[0] + a[3] * b[2],
+          a[2] * b[1] + a[3] * b[3],
+        ];
+      }
+
+      // Trace from just before G1 through the requested last thin group.
+
+      function systemMatrix(groupPowers, positions, lastGroupIndex = 3) {
+        let matrix = [1, 0, 0, 1];
+        for (let groupIndex = 0; groupIndex <= lastGroupIndex; groupIndex++) {
+          if (groupIndex) {
+            matrix = multiplyMatrices(
+              [1, positions[groupIndex] - positions[groupIndex - 1], 0, 1],
+              matrix,
+            );
+          }
+          matrix = multiplyMatrices(
+            [1, 0, -groupPowers[groupIndex], 1],
+            matrix,
+          );
+        }
+        return matrix;
+      }
+
+      // At G4, a unit-height parallel input ray must have height b/EFL and slope
+      // -1/EFL, where b is backFocalDistance. Eliminate G3 to obtain a quadratic in
+      // normalized G2 position. Recover both roots and verify their power and focus.
+      // Negative gaps and positions outside the fixed groups are intentionally retained.
+
+      function solvePositions(config, efl) {
+        const groupPowers = config.groupFocalLengths.map((v) => 1 / v),
+          targetSlopeBeforeG4 =
+            (groupPowers[3] * config.backFocalDistance - 1) / efl;
+        function focusPolynomial(normalizedG2) {
+          const g2Position = normalizedG2 * config.fixedGroupSeparation,
+            heightAtG2 = 1 - groupPowers[0] * g2Position,
+            slopeAfterG2 = -groupPowers[0] - groupPowers[1] * heightAtG2,
+            heightAtG3 = (slopeAfterG2 - targetSlopeBeforeG4) / groupPowers[2];
+          return (
+            (config.backFocalDistance / efl -
+              heightAtG3 -
+              (config.fixedGroupSeparation - g2Position) *
+                targetSlopeBeforeG4) *
+              slopeAfterG2 +
+            targetSlopeBeforeG4 * (heightAtG3 - heightAtG2)
+          );
+        }
+        const constant = focusPolynomial(0),
+          quadratic = (focusPolynomial(1) + focusPolynomial(-1)) / 2 - constant,
+          linear = (focusPolynomial(1) - focusPolynomial(-1)) / 2,
+          scale = Math.max(
+            Math.abs(quadratic),
+            Math.abs(linear),
+            Math.abs(constant),
+            1e-30,
+          );
+        let normalizedG2Roots = [];
+        if (Math.abs(quadratic) < 1e-12 * scale) {
+          if (Math.abs(linear) > 1e-12 * scale) {
+            normalizedG2Roots = [-constant / linear];
+          }
+        } else {
+          let discriminant = linear * linear - 4 * quadratic * constant;
+          if (discriminant >= -1e-12 * scale * scale) {
+            discriminant = Math.max(0, discriminant);
+            const q =
+              -0.5 *
+              (linear + (linear >= 0 ? 1 : -1) * Math.sqrt(discriminant));
+            normalizedG2Roots =
+              q === 0
+                ? [-linear / (2 * quadratic)]
+                : [q / quadratic, constant / q];
+          }
+        }
+        return normalizedG2Roots
+          .map((normalizedG2) => {
+            const g2Position = normalizedG2 * config.fixedGroupSeparation,
+              heightAtG2 = 1 - groupPowers[0] * g2Position,
+              slopeAfterG2 = -groupPowers[0] - groupPowers[1] * heightAtG2,
+              heightAtG3 =
+                (slopeAfterG2 - targetSlopeBeforeG4) / groupPowers[2];
+            let g3Position;
+            if (Math.abs(slopeAfterG2) > 1e-12) {
+              g3Position =
+                g2Position + (heightAtG3 - heightAtG2) / slopeAfterG2;
+            } else if (
+              Math.abs(targetSlopeBeforeG4) > 1e-12 &&
+              Math.abs(heightAtG3 - heightAtG2) < 1e-8
+            ) {
+              g3Position =
+                config.fixedGroupSeparation -
+                (config.backFocalDistance / efl - heightAtG3) /
+                  targetSlopeBeforeG4;
+            } else {
+              return null;
+            }
+            const positions = [
+                0,
+                g2Position,
+                g3Position,
+                config.fixedGroupSeparation,
+              ],
+              matrix = systemMatrix(groupPowers, positions);
+            return positions.every(Number.isFinite) &&
+              Math.abs(matrix[2] + 1 / efl) < 1e-7 / efl &&
+              Math.abs(matrix[0] + config.backFocalDistance * matrix[2]) < 1e-7
+              ? positions
+              : null;
+          })
+          .filter(Boolean)
+          .sort((a, b) => a[1] - b[1]);
+      }
+
+      // Trace one paraxial ray; store incoming angles and heights at each group.
+
+      function traceRay(groupPowers, positions, height, slope, imagePosition) {
+        const points = [[0, height]],
+          incidentAngles = [],
+          rayHeights = [];
+        for (let groupIndex = 0; groupIndex < 4; groupIndex++) {
+          if (groupIndex) {
+            height +=
+              (positions[groupIndex] - positions[groupIndex - 1]) * slope;
+          }
+          incidentAngles.push((Math.atan(slope) * 180) / Math.PI);
+          rayHeights.push(height);
+          points.push([positions[groupIndex], height]);
+          slope -= groupPowers[groupIndex] * height;
+        }
+        points.push([
+          imagePosition,
+          height + (imagePosition - positions[3]) * slope,
+        ]);
+        return {
+          points,
+          incidentAngles,
+          rayHeights,
+        };
+      }
+
+      // Aim chief rays at the selected stop and size the entrance pupil for the target F/#.
+      // imageHeight/EFL is the edge-field input slope. The nine rays are ordered as
+      // negative edge, center, positive edge; each field has lower/chief/upper pupil rays.
+      // incidentAngles and rayHeights in the returned sample are absolute maxima per group.
+
+      function analyzeConfiguration(config, efl, positions) {
+        const groupPowers = config.groupFocalLengths.map((v) => 1 / v),
+          matrix = systemMatrix(groupPowers, positions),
+          fNumber =
+            config.shortFNumber +
+            (config.longFNumber - config.shortFNumber) *
+              (config.longEfl === config.shortEfl
+                ? 0
+                : (efl - config.shortEfl) / (config.longEfl - config.shortEfl));
+        let stopTransfer = stopGroupIndex
+          ? systemMatrix(groupPowers, positions, stopGroupIndex - 1)
+          : [1, 0, 0, 1];
+        if (stopGroupIndex) {
+          stopTransfer = multiplyMatrices(
+            [
+              1,
+              positions[stopGroupIndex] - positions[stopGroupIndex - 1],
+              0,
+              1,
+            ],
+            stopTransfer,
+          );
+        }
+        const heightTransfer = stopTransfer[0],
+          angleTransfer = stopTransfer[1];
+        let rays = [],
+          stopDiameter = NaN;
+        if (Math.abs(heightTransfer) > 1e-10) {
+          const entrancePupilRadius = efl / (2 * fNumber);
+          stopDiameter = 2 * Math.abs(heightTransfer) * entrancePupilRadius;
+          for (const fieldSlope of [
+            -config.imageHeight / efl,
+            0,
+            config.imageHeight / efl,
+          ]) {
+            for (const pupilFraction of [-1, 0, 1]) {
+              rays.push(
+                traceRay(
+                  groupPowers,
+                  positions,
+                  (-angleTransfer * fieldSlope) / heightTransfer +
+                    pupilFraction * entrancePupilRadius,
+                  fieldSlope,
+                  config.totalTrack,
+                ),
+              );
+            }
+          }
+        }
+        const incidentAngles = [0, 1, 2, 3].map((i) =>
+            rays.length
+              ? Math.max(...rays.map((r) => Math.abs(r.incidentAngles[i])))
+              : Infinity,
+          ),
+          rayHeights = [0, 1, 2, 3].map((i) =>
+            rays.length
+              ? Math.max(...rays.map((r) => Math.abs(r.rayHeights[i])))
+              : Infinity,
+          );
+        return {
+          efl,
+          positions,
+          matrix,
+          fNumber,
+          stopDiameter,
+          rays,
+          incidentAngles,
+          rayHeights,
+          minGap: Math.min(
+            positions[1],
+            positions[2] - positions[1],
+            positions[3] - positions[2],
+          ),
+          maxAngle: Math.max(...incidentAngles),
+          angleSquareSum: rays.reduce(
+            (s, ray) => s + ray.incidentAngles.reduce((a, u) => a + u * u, 0),
+            0,
+          ),
+          angleCount: rays.length * 4,
+        };
+      }
+
+      // 3. Zoom branches and layout scales
+      // ----------------------------------
+
+      // Sample EFL uniformly and continue both roots by position matching. Matching the
+      // closest pair keeps the stable branch when the other root crosses infinity.
+      // Missing roots are null; crossed groups remain in the data.
+
+      function sampleZoom(config) {
+        let previousRoots = null;
+        const branches = [[], []];
+        for (
+          let sampleIndex = 0;
+          sampleIndex <= ZOOM_INTERVAL_COUNT;
+          sampleIndex++
+        ) {
+          const efl =
+            config.shortEfl +
+            ((config.longEfl - config.shortEfl) * sampleIndex) /
+              ZOOM_INTERVAL_COUNT;
+          let roots = solvePositions(config, efl);
+          if (roots.length === 2 && previousRoots) {
+            const positionDistance = (a, b) =>
+              Math.hypot(a[1] - b[1], a[2] - b[2]);
+            if (
+              Math.min(
+                positionDistance(roots[0], previousRoots[0]),
+                positionDistance(roots[1], previousRoots[1]),
+              ) >
+              Math.min(
+                positionDistance(roots[1], previousRoots[0]),
+                positionDistance(roots[0], previousRoots[1]),
+              )
+            ) {
+              roots.reverse();
+            }
+          }
+          if (roots.length === 1 && previousRoots) {
+            const positionDistance = (positions) =>
+              Math.hypot(
+                roots[0][1] - positions[1],
+                roots[0][2] - positions[2],
+              );
+            roots =
+              positionDistance(previousRoots[0]) <=
+              positionDistance(previousRoots[1])
+                ? [roots[0], null]
+                : [null, roots[0]];
+          }
+          for (let branchIndex = 0; branchIndex < 2; branchIndex++) {
+            branches[branchIndex].push(
+              roots[branchIndex]
+                ? analyzeConfiguration(config, efl, roots[branchIndex])
+                : null,
+            );
+          }
+          previousRoots =
+            roots.length === 2 && roots.every(Boolean) ? roots : null;
+        }
+        return branches;
+      }
+
+      // Collect sampled extrema and geometric status for one solution table row.
+
+      function summarizeBranch(config, branchSamples, branchIndex) {
+        const realSamples = branchSamples.filter(Boolean),
+          petzvalSum = config.groupFocalLengths.reduce(
+            (s, f) =>
+              s +
+              1 / (f * (f > 0 ? config.positiveIndex : config.negativeIndex)),
+            0,
+          ),
+          powerSquaredSum = config.groupFocalLengths.reduce(
+            (s, f) => s + 1 / f ** 2,
+            0,
+          ),
+          minimumGap = realSamples.length
+            ? Math.min(...realSamples.map((s) => s.minGap))
+            : NaN,
+          maxAngle = realSamples.length
+            ? Math.max(...realSamples.map((s) => s.maxAngle))
+            : Infinity,
+          angleCount = realSamples.reduce((s, v) => s + v.angleCount, 0),
+          rmsAngle = angleCount
+            ? Math.sqrt(
+                realSamples.reduce((s, v) => s + v.angleSquareSum, 0) /
+                  angleCount,
+              )
+            : Infinity;
+        const conditions = [];
+        if (realSamples.length !== ZOOM_SAMPLE_COUNT) {
+          conditions.push("missing roots");
+        }
+        if (minimumGap < 0) {
+          conditions.push("crossing");
+        }
+        return {
+          config,
+          series: branchSamples,
+          branchIndex,
+          petzvalSum,
+          powerSquaredSum,
+          minimumGap,
+          maxAngle,
+          rmsAngle,
+          realSampleCount: realSamples.length,
+          status: conditions.length
+            ? conditions.join(", ")
+            : "Ordered throughout",
+        };
+      }
+
+      // Re-solve at an exact normalized zoom position (defaults to the current slider).
+      // Match to nearby sampled roots. A single finite root belongs to only one branch.
+
+      function configurationAtSlider(
+        branchIndex,
+        zoomFraction = Number(getElement("zoom").value) / ZOOM_SLIDER_MAX,
+      ) {
+        const { config, branches } = state,
+          efl =
+            config.shortEfl + (config.longEfl - config.shortEfl) * zoomFraction,
+          roots = solvePositions(config, efl),
+          sampleIndex = Math.round(zoomFraction * ZOOM_INTERVAL_COUNT),
+          nearbySample = branches[branchIndex][sampleIndex];
+        if (!nearbySample || !roots.length) {
+          return null;
+        }
+        const positionDistance = (a, b) => Math.hypot(a[1] - b[1], a[2] - b[2]);
+        if (
+          roots.length === 2 &&
+          branches[0][sampleIndex] &&
+          branches[1][sampleIndex]
+        ) {
+          const a = branches[0][sampleIndex].positions,
+            b = branches[1][sampleIndex].positions;
+          if (
+            Math.min(
+              positionDistance(roots[0], a),
+              positionDistance(roots[1], b),
+            ) >
+            Math.min(
+              positionDistance(roots[1], a),
+              positionDistance(roots[0], b),
+            )
+          ) {
+            roots.reverse();
+          }
+          return analyzeConfiguration(config, efl, roots[branchIndex]);
+        }
+        if (
+          roots.length === 1 &&
+          branches[0][sampleIndex] &&
+          branches[1][sampleIndex]
+        ) {
+          const owner =
+            positionDistance(roots[0], branches[0][sampleIndex].positions) <=
+            positionDistance(roots[0], branches[1][sampleIndex].positions)
+              ? 0
+              : 1;
+          if (branchIndex !== owner) {
+            return null;
+          }
+        }
+        roots.sort(
+          (a, b) =>
+            positionDistance(a, nearbySample.positions) -
+            positionDistance(b, nearbySample.positions),
+        );
+        return analyzeConfiguration(config, efl, roots[0]);
+      }
+
+      // Use a fixed vertical extent per branch over zoom, including incoming ray extensions.
+
+      function layoutHalfHeight(config, branchSamples) {
+        let height = Math.max(1, config.imageHeight);
+        for (const sample of branchSamples) {
+          if (!sample) {
+            continue;
+          }
+          const start =
+            Math.min(0, ...sample.positions) - 0.1 * config.totalTrack;
+          sample.rays.slice(3).forEach((ray, i) => {
+            const slope = i < 3 ? 0 : config.imageHeight / sample.efl;
+            height = Math.max(
+              height,
+              Math.abs(ray.points[0][1] + start * slope),
+            );
+            for (const point of ray.points) {
+              height = Math.max(height, Math.abs(point[1]));
+            }
+          });
+        }
+        return height;
+      }
+
+      // 4. Spherical-correction algebra
+      // -------------------------------
+
+      // Polynomials use ascending coefficients: [constant, x, x², ...].
+
+      function addPolynomials(a, b) {
+        return Array.from(
+          {
+            length: Math.max(a.length, b.length),
+          },
+          (_, i) => (a[i] || 0) + (b[i] || 0),
+        );
+      }
+
+      function scalePolynomial(a, factor) {
+        return a.map((value) => value * factor);
+      }
+
+      function multiplyPolynomials(a, b) {
+        const result = Array(a.length + b.length - 1).fill(0);
+        a.forEach((value, i) =>
+          b.forEach((other, j) => (result[i + j] += value * other)),
+        );
+        return result;
+      }
+
+      // Build the primary Seidel spherical-aberration cubic for a unit-height collimated ray.
+      // All intra-group distances are zero. For normalized net power sign = ±1, N−1
+      // lenses have power sign*x/(N−1); the middle lens has power sign*(1−x).
+      // x>1 gives a central opposite-power lens while preserving total group power.
+      // For each surface: A=n(u+c), u′=[nu−(n′−n)c]/n′, S_I=−Σ A² Δ(u/n).
+      // Source: https://www.montana.edu/jshaw/documents/10%20EELE582_S15_Ray_Aberrations.pdf
+
+      function sphericalPolynomial(count, sign, positiveIndex, negativeIndex) {
+        let slope = [0],
+          spherical = [0];
+        for (let lens = 0; lens < count; lens++) {
+          const opposite = lens === Math.floor(count / 2),
+            power = opposite ? [sign, -sign] : [0, sign / (count - 1)],
+            lensSign = opposite ? -sign : sign,
+            index = lensSign > 0 ? positiveIndex : negativeIndex,
+            curvature = scalePolynomial(power, 1 / (2 * (index - 1)));
+          for (const [before, after, direction] of [
+            [1, index, 1],
+            [index, 1, -1],
+          ]) {
+            const surfaceCurvature = scalePolynomial(curvature, direction),
+              invariant = scalePolynomial(
+                addPolynomials(slope, surfaceCurvature),
+                before,
+              ),
+              outgoing = scalePolynomial(
+                addPolynomials(
+                  scalePolynomial(slope, before),
+                  scalePolynomial(surfaceCurvature, before - after),
+                ),
+                1 / after,
+              ),
+              change = addPolynomials(
+                scalePolynomial(outgoing, 1 / after),
+                scalePolynomial(slope, -1 / before),
+              );
+            spherical = addPolynomials(
+              spherical,
+              scalePolynomial(
+                multiplyPolynomials(
+                  multiplyPolynomials(invariant, invariant),
+                  change,
+                ),
+                -1,
+              ),
+            );
+            slope = outgoing;
+          }
+        }
+        return spherical;
+      }
+
+      // Closed-form real roots using Cardano, with quadratic/linear degeneracies.
+
+      function realCubicRoots(coefficients) {
+        const [constant = 0, linear = 0, quadratic = 0, cubic = 0] =
+            coefficients,
+          scale = Math.max(...coefficients.map(Math.abs), 1e-30);
+        if (Math.abs(cubic) < 1e-12 * scale) {
+          if (Math.abs(quadratic) < 1e-12 * scale) {
+            return Math.abs(linear) > 1e-12 * scale ? [-constant / linear] : [];
+          }
+          const discriminant = linear * linear - 4 * quadratic * constant;
+          return discriminant < 0
+            ? []
+            : [
+                (-linear + Math.sqrt(discriminant)) / (2 * quadratic),
+                (-linear - Math.sqrt(discriminant)) / (2 * quadratic),
+              ];
+        }
+        const normalizedQuadratic = quadratic / cubic,
+          normalizedLinear = linear / cubic,
+          normalizedConstant = constant / cubic,
+          p =
+            normalizedLinear - (normalizedQuadratic * normalizedQuadratic) / 3,
+          q =
+            (2 * normalizedQuadratic ** 3) / 27 -
+            (normalizedQuadratic * normalizedLinear) / 3 +
+            normalizedConstant,
+          discriminant = (q * q) / 4 + p ** 3 / 27,
+          tolerance =
+            1e-12 * Math.max((q * q) / 4, Math.abs(p ** 3 / 27), 1e-30);
+        if (discriminant > tolerance) {
+          return [
+            Math.cbrt(-q / 2 + Math.sqrt(discriminant)) +
+              Math.cbrt(-q / 2 - Math.sqrt(discriminant)) -
+              normalizedQuadratic / 3,
+          ];
+        }
+        if (discriminant >= -tolerance) {
+          const u = Math.cbrt(-q / 2);
+          return [
+            2 * u - normalizedQuadratic / 3,
+            -u - normalizedQuadratic / 3,
+          ];
+        }
+        const radius = 2 * Math.sqrt(-p / 3),
+          angle = Math.acos(
+            Math.max(-1, Math.min(1, ((3 * q) / (2 * p)) * Math.sqrt(-3 / p))),
+          );
+        return [0, 1, 2].map(
+          (k) =>
+            radius * Math.cos((angle + 2 * k * Math.PI) / 3) -
+            normalizedQuadratic / 3,
+        );
+      }
+
+      // Choose the valid correction root with the least internal positive/negative power.
+
+      function correctedGroupLenses(
+        focalLength,
+        count,
+        positiveIndex,
+        negativeIndex,
+      ) {
+        const sign = Math.sign(focalLength),
+          coefficients = sphericalPolynomial(
+            count,
+            sign,
+            positiveIndex,
+            negativeIndex,
+          ),
+          roots = realCubicRoots(coefficients).filter(
+            (x) => Number.isFinite(x) && x > 1,
+          ),
+          // Prefer the solution with the least internal positive/negative power.
+          split = Math.min(...roots);
+        if (!Number.isFinite(split)) {
+          throw Error(
+            "No spherical-correction split exists for these indices.",
+          );
+        }
+        return Array.from(
+          {
+            length: count,
+          },
+          (_, lens) => {
+            const power =
+                (lens === Math.floor(count / 2)
+                  ? 1 - split
+                  : split / (count - 1)) / focalLength,
+              index = power > 0 ? positiveIndex : negativeIndex;
+            return {
+              radius: (2 * (index - 1)) / power,
+              power,
+              index,
+              glass: power > 0 ? "ZSPOS" : "ZSNEG",
+            };
+          },
+        );
+      }
+
+      // 5. CODE V seed construction
+      // ---------------------------
+
+      // Build the seed singlets from equal powers or the spherical-correction power split.
+
+      function buildGroupLenses(config, settings) {
+        const { lensCount, lensThickness, correctSpherical } = settings;
+        return config.groupFocalLengths.map((focalLength) => {
+          if (correctSpherical) {
+            return correctedGroupLenses(
+              focalLength,
+              lensCount,
+              config.positiveIndex,
+              config.negativeIndex,
+            );
+          }
+          const index =
+              focalLength > 0 ? config.positiveIndex : config.negativeIndex,
+            power = 1 / (focalLength * lensCount),
+            discriminant = 1 - (power * lensThickness) / index;
+          if (discriminant < 0) {
+            throw Error(
+              "No real symmetric-singlet radius for these export settings.",
+            );
+          }
+          const radius = ((index - 1) / power) * (1 + Math.sqrt(discriminant));
+          return Array.from(
+            {
+              length: lensCount,
+            },
+            () => ({
+              radius,
+              power,
+              index,
+              glass: focalLength > 0 ? "ZSPOS" : "ZSNEG",
+            }),
+          );
+        });
+      }
+
+      // Pure text builder: accepts system/configuration data and export settings.
+      // Surface numbering includes the plane dummy stop. Air gaps retain their signs.
+      // Finite-thickness group centers follow the existing seed-placement convention.
+
+      function buildCodeVSequence(
+        config,
+        samples,
+        settings,
+        selectedStopGroup,
+      ) {
+        const { lensCount, lensThickness, zoomCount } = settings;
+        const groupLenses = buildGroupLenses(config, settings);
+        const groupDepth = lensCount * lensThickness,
+          groupStarts = samples.map((s) =>
+            s.positions.map((z) => z - groupDepth / 2),
+          );
+        const { wavelengths, reference } =
+            WAVELENGTH_PRESETS[settings.wavelengthPreset],
+          fieldCount = settings.fieldCount,
+          // Equal increments in squared image radius give equal-area fields.
+          fields = Array.from(
+            {
+              length: fieldCount,
+            },
+            (_, i) => config.imageHeight * Math.sqrt(i / (fieldCount - 1)),
+          );
+        let lines = [
+          "RDM;LEN",
+          "TITLE 'Four group zoom search - finite thickness seed'",
+          "DIM M",
+          `WL ${wavelengths.map((value) => value.toFixed(4)).join(" ")}`,
+          `REF ${reference}`,
+          `FNO ${config.shortFNumber}`,
+          `YIM ${fields.map((value) => Number(value.toFixed(10))).join(" ")}`,
+          "PRV",
+          `PWL ${wavelengths.map((value) => value.toFixed(4)).join(" ")}`,
+          `'ZSPOS' ${wavelengths.map(() => config.positiveIndex).join(" ")}`,
+          `'ZSNEG' ${wavelengths.map(() => config.negativeIndex).join(" ")}`,
+          "END",
+          "SO 0 1e17",
+        ];
+        let surfaceNumber = 0,
+          zoomRows = [];
+        for (let groupIndex = 0; groupIndex < 4; groupIndex++) {
+          for (let lensIndex = 0; lensIndex < lensCount; lensIndex++) {
+            // Keep the stop on a plane dummy surface in air before its group.
+            if (groupIndex === selectedStopGroup && lensIndex === 0) {
+              lines.push("S 0 0", "STO");
+              surfaceNumber++;
+            }
+            lines.push(
+              `S ${groupLenses[groupIndex][lensIndex].radius.toFixed(10)} ${lensThickness} '${groupLenses[groupIndex][lensIndex].glass}'`,
+            );
+            surfaceNumber++;
+            let gaps;
+            if (lensIndex < lensCount - 1) {
+              gaps = samples.map(() => 0);
+            } else {
+              gaps = samples.map((s, i) =>
+                groupIndex < 3
+                  ? groupStarts[i][groupIndex + 1] -
+                    (groupStarts[i][groupIndex] + groupDepth)
+                  : config.totalTrack -
+                    (groupStarts[i][groupIndex] + groupDepth),
+              );
+            }
+            lines.push(
+              `S ${(-groupLenses[groupIndex][lensIndex].radius).toFixed(10)} ${gaps[0].toFixed(10)}`,
+            );
+            surfaceNumber++;
+            if (lensIndex === lensCount - 1) {
+              zoomRows.push(
+                `ZOO THI S${surfaceNumber} ${gaps.map((v) => v.toFixed(10)).join(" ")}`,
+              );
+            }
+          }
+        }
+        lines.push(
+          "SI 0 0",
+          `ZOO ${zoomCount}`,
+          ...zoomRows,
+          `ZOO FNO ${samples.map((s) => s.fNumber.toFixed(8)).join(" ")}`,
+          "GO",
+        );
+        return lines.join("\n") + "\n";
+      }
+
+      // 6. Solve orchestration
+      // ----------------------
+
+      // Recompute both roots for the current focal lengths and refresh the UI.
+
+      function solveAndRender() {
+        try {
+          const config = readInputs();
+          const branches = sampleZoom(config);
+          state = {
+            config,
+            branches,
+            layoutHalfHeights: branches.map((branch) =>
+              layoutHalfHeight(config, branch),
+            ),
+          };
+          renderComparison();
+          getElement("error").textContent = "";
+          render();
+        } catch (e) {
+          state = null;
+          getElement("error").textContent = e.message;
+          clearResults();
+        }
+      }
+
+      // Keep exactly one group selected as the stop and recompute its ray statistics.
+
+      function changeStop(groupIndex) {
+        stopGroupIndex = groupIndex;
+        document.querySelectorAll("[data-stop]").forEach((checkbox) => {
+          checkbox.checked = Number(checkbox.dataset.stop) === stopGroupIndex;
+        });
+        solveAndRender();
+      }
+
+      // 7. HTML and SVG presentation
+      // ----------------------------
+
+      function formatNumber(value, decimalPlaces = 3) {
+        return Number.isFinite(value) ? value.toFixed(decimalPlaces) : "—";
+      }
+
+      // Create one SVG node with attributes and optional text content.
+
+      function createSvgElement(parent, name, attrs = {}, content) {
+        const n = document.createElementNS(SVG_NAMESPACE, name);
+        Object.entries(attrs).forEach(([k, v]) => n.setAttribute(k, v));
+        if (content !== undefined) {
+          n.textContent = content;
+        }
+        parent.appendChild(n);
+        return n;
+      }
+
+      // Clear stale plots and readouts after an input error.
+
+      function clearResults() {
+        for (let k = 0; k < 2; k++) {
+          [
+            "motion",
+            "angles",
+            "aperture",
+            "layout",
+            "groupRows",
+            "status",
+          ].forEach((id) => getElement(id + k).replaceChildren());
+        }
+        getElement("results").replaceChildren();
+        ["currentEfl", "currentFnumber"].forEach(
+          (id) => (getElement(id).value = ""),
+        );
+        ["sharedPetzval", "sharedPower2"].forEach(
+          (id) => (getElement(id).textContent = ""),
+        );
+      }
+
+      // Render sampled curves with gaps for missing data and optional explicit vertical limits.
+
+      function drawChart(id, series, yLabel, yRange = null) {
+        const plotSvg = getElement(id);
+        plotSvg.replaceChildren();
+        const data = series.flatMap((s) =>
+          s.data.filter((p) => p && p.every(Number.isFinite)),
+        );
+        if (!data.length) {
+          createSvgElement(
+            plotSvg,
+            "text",
+            {
+              x: 40,
+              y: 80,
+            },
+            "No finite real data",
+          );
+          return;
+        }
+        let xmin = state.config.shortEfl,
+          xmax = state.config.longEfl;
+        if (xmax === xmin) {
+          xmax = xmin + 1;
+        }
+        let ymin = Math.min(...data.map((p) => p[1])),
+          ymax = Math.max(...data.map((p) => p[1]));
+        if (yRange) {
+          ymin = yRange[0];
+          ymax = yRange[1] ?? ymax;
+          if (ymax === ymin) {
+            ymax = ymin + 1;
+          }
+        } else {
+          const pad = (ymax - ymin) * 0.08 || 1;
+          ymin -= pad;
+          ymax += pad;
+        }
+        const x = (v) => 55 + ((v - xmin) / (xmax - xmin)) * 460,
+          y = (v) => 235 - ((v - ymin) / (ymax - ymin)) * 200;
+        for (let i = 0; i <= 4; i++) {
+          let v = ymin + ((ymax - ymin) * i) / 4;
+          createSvgElement(plotSvg, "line", {
+            x1: 55,
+            x2: 515,
+            y1: y(v),
+            y2: y(v),
+            stroke: "var(--line)",
+          });
+          createSvgElement(
+            plotSvg,
+            "text",
+            {
+              x: 49,
+              y: y(v) + 4,
+              "text-anchor": "end",
+            },
+            formatNumber(v, 1),
+          );
+          let f = xmin + ((xmax - xmin) * i) / 4;
+          createSvgElement(
+            plotSvg,
+            "text",
+            {
+              x: x(f),
+              y: 253,
+              "text-anchor": "middle",
+            },
+            formatNumber(f, 0),
+          );
+        }
+        createSvgElement(
+          plotSvg,
+          "text",
+          {
+            x: 55,
+            y: 16,
+          },
+          yLabel,
+        );
+        createSvgElement(
+          plotSvg,
+          "text",
+          {
+            x: 290,
+            y: 275,
+            "text-anchor": "middle",
+          },
+          "Target EFL [mm]",
+        );
+        series.forEach((s, i) => {
+          let d = "",
+            pen = false;
+          s.data.forEach((p) => {
+            if (!p || !p.every(Number.isFinite)) {
+              pen = false;
+              return;
+            }
+            d += (pen ? " L" : " M") + x(p[0]) + "," + y(p[1]);
+            pen = true;
+          });
+          createSvgElement(plotSvg, "path", {
+            d,
+            fill: "none",
+            stroke: s.color || GROUP_COLORS[i % 4],
+            "stroke-width": 2,
+            "stroke-dasharray": s.dash || "",
+          });
+          createSvgElement(
+            plotSvg,
+            "text",
+            {
+              x: 65 + i * 110,
+              y: 30,
+              style: `fill:${s.color || GROUP_COLORS[i % 4]}`,
+            },
+            s.name,
+          );
+        });
+        const f =
+          state.config.shortEfl +
+          ((state.config.longEfl - state.config.shortEfl) *
+            Number(getElement("zoom").value)) /
+            ZOOM_SLIDER_MAX;
+        createSvgElement(plotSvg, "line", {
+          x1: x(f),
+          x2: x(f),
+          y1: 36,
+          y2: 235,
+          stroke: "var(--muted)",
+          "stroke-dasharray": "3 4",
+        });
+      }
+
+      // Compare the two branches of the currently entered group focal lengths.
+      function renderComparison() {
+        getElement("results").innerHTML = state.branches
+          .map((samples, branchIndex) => {
+            const row = summarizeBranch(state.config, samples, branchIndex);
+            return `<tr>
+            <td>${branchIndex + 1}</td>
+            <td>${row.realSampleCount}/${ZOOM_SAMPLE_COUNT}</td>
+            <td>${formatNumber(row.minimumGap)}</td>
+            <td>${formatNumber(row.petzvalSum, 5)}</td>
+            <td>${formatNumber(row.powerSquaredSum, 5)}</td>
+            <td>${formatNumber(row.maxAngle, 1)} / ${formatNumber(row.rmsAngle, 1)}</td>
+            <td class="${row.status === "Ordered throughout" ? "" : "error"}">${row.status}</td>
+          </tr>`;
+          })
+          .join("");
+      }
+
+      // Generate the four focal-length inputs with their stop checkboxes.
+
+      function renderGroupInputs() {
+        getElement("powers").innerHTML = DEFAULT_GROUP_FOCAL_LENGTHS.map(
+          (focalLength, groupIndex) => {
+            const minimum = Math.min(focalLength * 0.5, focalLength * 1.5),
+              maximum = Math.max(focalLength * 0.5, focalLength * 1.5);
+            return `<div>
+            <label class="group-heading">
+              <input type="checkbox" data-stop="${groupIndex}" aria-label="Stop at group ${groupIndex + 1}" title="Stop at group ${groupIndex + 1}" ${groupIndex === stopGroupIndex ? "checked" : ""}>
+              G${groupIndex + 1} · ${groupIndex === 0 || groupIndex === 3 ? "fixed" : "moving"} [mm]
+            </label>
+            <input id="focalSlider${groupIndex}" class="focal-slider" type="range" min="${minimum}" max="${maximum}" value="${focalLength}" step="any" data-focal-slider="${groupIndex}" aria-label="Group ${groupIndex + 1} focal length">
+            <div class="focal-values">
+              <label>Min<input id="focalMin${groupIndex}" type="number" step="any" value="${minimum}" data-focal-number="${groupIndex}" aria-label="Group ${groupIndex + 1} minimum focal length"></label>
+              <label>Current<input id="f${groupIndex}" type="number" step="any" min="${minimum}" max="${maximum}" value="${focalLength}" data-focal-number="${groupIndex}" aria-label="Group ${groupIndex + 1} current focal length"></label>
+              <label>Max<input id="focalMax${groupIndex}" type="number" step="any" value="${maximum}" data-focal-number="${groupIndex}" aria-label="Group ${groupIndex + 1} maximum focal length"></label>
+            </div>
+          </div>`;
+          },
+        ).join("");
+      }
+
+      // Update shared values, then draw both solution branches.
+
+      function render() {
+        if (!state) {
+          return;
+        }
+        const { config, branches } = state,
+          zoomFraction = Number(getElement("zoom").value) / ZOOM_SLIDER_MAX;
+        getElement("currentEfl").value = Number(
+          (
+            config.shortEfl +
+            (config.longEfl - config.shortEfl) * zoomFraction
+          ).toFixed(8),
+        );
+        getElement("currentEfl").min = config.shortEfl;
+        getElement("currentEfl").max = config.longEfl;
+        getElement("currentFnumber").value = Number(
+          (
+            config.shortFNumber +
+            (config.longFNumber - config.shortFNumber) * zoomFraction
+          ).toFixed(8),
+        );
+        getElement("sharedPetzval").textContent = formatNumber(
+          config.groupFocalLengths.reduce(
+            (v, f) =>
+              v +
+              1 / (f * (f > 0 ? config.positiveIndex : config.negativeIndex)),
+            0,
+          ),
+          5,
+        );
+        getElement("sharedPower2").textContent = formatNumber(
+          config.groupFocalLengths.reduce((v, f) => v + 1 / f ** 2, 0),
+          5,
+        );
+        for (let k = 0; k < 2; k++) {
+          renderSolution(k, config, branches);
+        }
+      }
+
+      // Draw the motion, incidence-angle and stop-diameter charts for one branch.
+
+      function renderSolution(branchIndex, config, branches) {
+        drawChart(
+          "motion" + branchIndex,
+          [0, 1, 2, 3].map((g) => ({
+            name: "G" + (g + 1),
+            data: branches[branchIndex].map((s) =>
+              s ? [s.efl, s.positions[g]] : null,
+            ),
+          })),
+          "Group z [mm]",
+        );
+        drawChart(
+          "angles" + branchIndex,
+          [0, 1, 2, 3].map((g) => ({
+            name: "G" + (g + 1),
+            data: branches[branchIndex].map((s) =>
+              s ? [s.efl, s.incidentAngles[g]] : null,
+            ),
+          })),
+          "Incident angle [°]",
+          [-90, 90],
+        );
+        drawChart(
+          "aperture" + branchIndex,
+          [
+            {
+              name: "Stop Ø / mm",
+              color: GROUP_COLORS[1],
+              data: branches[branchIndex].map((s) =>
+                s ? [s.efl, s.stopDiameter] : null,
+              ),
+            },
+          ],
+          "Stop diameter [mm]",
+          [0, null],
+        );
+        renderLayout(branchIndex, config);
+      }
+
+      // Draw the center and positive edge-field ray bundles and the group table.
+      // The incoming extension is 10% of total track. Vertical scale stays fixed over zoom.
+
+      function renderLayout(branchIndex, config) {
+        const configuration = configurationAtSlider(branchIndex),
+          layoutSvg = getElement("layout" + branchIndex);
+        layoutSvg.replaceChildren();
+        if (!configuration) {
+          getElement("status" + branchIndex).textContent =
+            "No real solution on this branch at the selected EFL.";
+          getElement("groupRows" + branchIndex).replaceChildren();
+          return;
+        }
+        getElement("status" + branchIndex).textContent = Number.isFinite(
+          configuration.stopDiameter,
+        )
+          ? ""
+          : "Stop conjugate is singular.";
+        const startPosition =
+            Math.min(0, ...configuration.positions) - 0.1 * config.totalTrack,
+          endPosition = Math.max(config.totalTrack, ...configuration.positions),
+          toScreenX = (z) =>
+            45 +
+            ((z - startPosition) / (endPosition - startPosition || 1)) * 810,
+          displayRays = configuration.rays.slice(3).map((r, i) => {
+            const slope = i < 3 ? 0 : config.imageHeight / configuration.efl;
+            return {
+              points: [
+                [startPosition, r.points[0][1] + startPosition * slope],
+                ...r.points,
+              ],
+              edge: i >= 3,
+            };
+          }),
+          halfHeight = state.layoutHalfHeights[branchIndex],
+          toScreenY = (h) => 155 - (h / halfHeight) * 100;
+        createSvgElement(layoutSvg, "line", {
+          x1: 25,
+          x2: 875,
+          y1: 155,
+          y2: 155,
+          stroke: "var(--axis)",
+          "stroke-dasharray": "4 4",
+        });
+        displayRays.forEach((r) =>
+          createSvgElement(layoutSvg, "polyline", {
+            points: r.points
+              .map((p) => `${toScreenX(p[0])},${toScreenY(p[1])}`)
+              .join(" "),
+            fill: "none",
+            stroke: r.edge ? "var(--ray-edge)" : GROUP_COLORS[0],
+            "stroke-width": 1.5,
+          }),
+        );
+        configuration.positions.forEach((z, g) => {
+          const group = createSvgElement(layoutSvg, "g");
+          createSvgElement(group, "line", {
+            x1: toScreenX(z),
+            x2: toScreenX(z),
+            y1: 35,
+            y2: 270,
+            stroke: GROUP_COLORS[g],
+            "stroke-width": g === stopGroupIndex ? 5 : 3,
+          });
+          createSvgElement(
+            group,
+            "text",
+            {
+              x: toScreenX(z),
+              y: 22,
+              "text-anchor": "middle",
+            },
+            `G${g + 1}${g === stopGroupIndex ? " STOP" : ""}`,
+          );
+          createSvgElement(
+            group,
+            "text",
+            {
+              x: toScreenX(z),
+              y: 291,
+              "text-anchor": "middle",
+            },
+            formatNumber(z, 1),
+          );
+        });
+        createSvgElement(layoutSvg, "line", {
+          x1: toScreenX(config.totalTrack),
+          x2: toScreenX(config.totalTrack),
+          y1: 35,
+          y2: 270,
+          stroke: "var(--text)",
+          "stroke-width": 2,
+        });
+        createSvgElement(
+          layoutSvg,
+          "text",
+          {
+            x: toScreenX(config.totalTrack),
+            y: 22,
+            "text-anchor": "end",
+          },
+          "Image",
+        );
+        getElement("groupRows" + branchIndex).innerHTML =
+          configuration.positions
+            .map(
+              (z, g) =>
+                `<tr><td>G${g + 1}${stopGroupIndex === g ? " · stop" : ""}</td><td>${formatNumber(z)}</td><td>${formatNumber(config.groupFocalLengths[g])}</td><td>${formatNumber((g < 3 ? configuration.positions[g + 1] : config.totalTrack) - z)}</td><td>${formatNumber(configuration.incidentAngles[g], 2)}</td><td>${formatNumber(configuration.rayHeights[g], 2)}</td></tr>`,
+            )
+            .join("");
+      }
+
+      // 8. File export, events, and startup
+      // -----------------------------------
+
+      // Download generated text without changing the prescription.
+
+      function downloadTextFile(filename, text) {
+        const blob = new Blob([text], {
+            type: "text/plain",
+          }),
+          link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+      }
+
+      // UI wrapper: validate export settings/configurations, build text, then download.
+
+      function exportCodeV(branchIndex) {
+        try {
+          if (!state) {
+            throw Error("Solve a system first.");
+          }
+          const config = state.config,
+            settings = readExportSettings(),
+            samples = Array.from(
+              {
+                length: settings.zoomCount,
+              },
+              (_, i) =>
+                configurationAtSlider(
+                  branchIndex,
+                  i / (settings.zoomCount - 1),
+                ),
+            );
+          if (
+            samples.some(
+              (sample) => !sample || !Number.isFinite(sample.stopDiameter),
+            )
+          ) {
+            throw Error(
+              "All export configurations need finite real roots and a finite stop.",
+            );
+          }
+          const text = buildCodeVSequence(
+              config,
+              samples,
+              settings,
+              stopGroupIndex,
+            ),
+            filename =
+              "Zoom_Search_" +
+              config.groupFocalLengths
+                .map((f) => (f > 0 ? "P" : "N"))
+                .join("") +
+              "_Root" +
+              (branchIndex + 1) +
+              ".seq";
+          downloadTextFile(filename, text);
+          getElement("error").textContent =
+            "Exported finite-thickness seed. Recheck EFL, focus and aperture in CODE V.";
+        } catch (error) {
+          getElement("error").textContent = error.message;
+        }
+      }
+
+      // Sliders update continuously; numeric values commit when editing finishes.
+      function handleFocalSliderInput(groupIndex) {
+        getElement("f" + groupIndex).value = getElement(
+          "focalSlider" + groupIndex,
+        ).value;
+        solveAndRender();
+      }
+
+      function handleFocalNumberChange(groupIndex) {
+        try {
+          const minimum = readNumber("focalMin" + groupIndex),
+            maximum = readNumber("focalMax" + groupIndex);
+          if (minimum >= maximum)
+            throw Error(
+              "Minimum focal length must be less than maximum focal length.",
+            );
+          const current = Math.max(
+              minimum,
+              Math.min(maximum, readNumber("f" + groupIndex)),
+            ),
+            slider = getElement("focalSlider" + groupIndex),
+            input = getElement("f" + groupIndex);
+          slider.min = input.min = minimum;
+          slider.max = input.max = maximum;
+          slider.value = input.value = current;
+          solveAndRender();
+        } catch (error) {
+          getElement("error").textContent = error.message;
+        }
+      }
+
+      // Editing the shared F/# sets both endpoint F/# values.
+
+      function handleFNumberChange() {
+        if (!state) {
+          return;
+        }
+        try {
+          const f = readNumber("currentFnumber"),
+            t = Number(getElement("zoom").value) / ZOOM_SLIDER_MAX;
+          if (
+            Math.abs(
+              f -
+                (state.config.shortFNumber +
+                  (state.config.longFNumber - state.config.shortFNumber) * t),
+            ) < 1e-8
+          ) {
+            return;
+          }
+          if (f <= 0) {
+            throw Error("F/# must be positive.");
+          }
+          getElement("fshort").value = f;
+          getElement("flong").value = f;
+          solveAndRender();
+        } catch (e) {
+          getElement("error").textContent = e.message;
+          render();
+        }
+      }
+
+      // Editing shared EFL moves the slider within the specified EFL range.
+
+      function handleEflChange() {
+        if (!state) {
+          return;
+        }
+        try {
+          const f = readNumber("currentEfl"),
+            c = state.config;
+          if (f < c.shortEfl || f > c.longEfl) {
+            throw Error("EFL must be within the short-to-long range.");
+          }
+          getElement("zoom").value =
+            c.longEfl === c.shortEfl
+              ? 0
+              : (ZOOM_SLIDER_MAX * (f - c.shortEfl)) / (c.longEfl - c.shortEfl);
+          getElement("error").textContent = "";
+          render();
+        } catch (e) {
+          getElement("error").textContent = e.message;
+          render();
+        }
+      }
+
+      // Cycle Auto → Light → Dark and update the icon and accessible label.
+
+      function cycleAppearance() {
+        const modes = ["auto", "light", "dark"],
+          currentMode =
+            modes[
+              (modes.indexOf(document.documentElement.dataset.theme || "auto") +
+                1) %
+                3
+            ],
+          nextMode = modes[(modes.indexOf(currentMode) + 1) % 3],
+          capitalize = (v) => v[0].toUpperCase() + v.slice(1),
+          icons = {
+            auto: '<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
+            light:
+              '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/>',
+            dark: '<path d="M20.5 13.2A9 9 0 0 1 10.8 3.5a9 9 0 1 0 9.7 9.7Z"/>',
+          };
+        document.documentElement.dataset.theme = currentMode;
+        getElement("appearance").querySelector("svg").innerHTML =
+          icons[currentMode];
+        getElement("appearance").setAttribute(
+          "aria-label",
+          `Appearance: ${capitalize(currentMode)}. Switch to ${capitalize(nextMode)}`,
+        );
+        getElement("appearance").title =
+          `${capitalize(currentMode)} · switch to ${capitalize(nextMode)}`;
+      }
+
+      // Keep event wiring in one place; numerical functions do not register listeners.
+
+      function bindEvents() {
+        getElement("currentFnumber").onchange = handleFNumberChange;
+        getElement("currentEfl").onchange = handleEflChange;
+        getElement("appearance").onclick = cycleAppearance;
+        ["currentEfl", "currentFnumber"].forEach((id) => {
+          getElement(id).onblur = getElement(id).onchange;
+          getElement(id).onkeydown = (e) => {
+            if (e.key === "Enter") {
+              getElement(id).onchange();
+            }
+          };
+        });
+        document.querySelectorAll("[data-focal-slider]").forEach((input) => {
+          input.oninput = () =>
+            handleFocalSliderInput(Number(input.dataset.focalSlider));
+        });
+        document.querySelectorAll("[data-focal-number]").forEach((input) => {
+          input.onchange = () =>
+            handleFocalNumberChange(Number(input.dataset.focalNumber));
+          input.onkeydown = (event) => {
+            if (event.key === "Enter") input.onchange();
+          };
+        });
+        getElement("zoom").oninput = render;
+        document.querySelectorAll("[data-stop]").forEach((checkbox) => {
+          checkbox.onchange = () => changeStop(Number(checkbox.dataset.stop));
+        });
+        document
+          .querySelectorAll("[data-export]")
+          .forEach(
+            (b) => (b.onclick = () => exportCodeV(Number(b.dataset.export))),
+          );
+        document.querySelectorAll("[data-zoom]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              getElement("zoom").value = b.dataset.zoom;
+              render();
+            }),
+        );
+        document
+          .querySelectorAll(
+            'aside input[type="number"]:not([data-focal-number])',
+          )
+          .forEach((input) =>
+            input.addEventListener("change", () => solveAndRender()),
+          );
+      }
+
+      // Render inputs before binding their controls, then calculate the default example.
+
+      function initialize() {
+        renderGroupInputs();
+        bindEvents();
+        solveAndRender();
+      }
+
+      initialize();
+    </script>
+  </body>
+</html>
