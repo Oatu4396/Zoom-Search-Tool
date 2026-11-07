@@ -1849,21 +1849,22 @@
           if (ymax === ymin) {
             ymax = ymin + 1;
           }
-        } else {
+        } else if (!roundedTicks) {
           const pad = (ymax - ymin) * 0.08 || 1;
           ymin -= pad;
           ymax += pad;
         }
         let yTickCount = 4;
         if (roundedTicks) {
-          const targetStep = (ymax - ymin) / 5,
+          const targetStep = (Math.max(0, ymax) - Math.min(0, ymin)) / 5 || 1,
             magnitude = 10 ** Math.floor(Math.log10(targetStep)),
             step = [1, 2, 2.5, 5, 10].reduce((best, value) =>
               Math.abs(Math.log(value * magnitude / targetStep)) <
               Math.abs(Math.log(best * magnitude / targetStep)) ? value : best,
             ) * magnitude;
-          yTickCount = Math.ceil((ymax - ymin) / step);
-          ymax = ymin + yTickCount * step;
+          ymin = Math.min(-step, Math.floor(ymin / step) * step);
+          ymax = Math.ceil(ymax / step) * step;
+          yTickCount = Math.round((ymax - ymin) / step);
           const clip = createSvgElement(
             createSvgElement(plotSvg, "defs", {}),
             "clipPath",
@@ -2063,7 +2064,7 @@
             ),
           })),
           "Group z [mm]",
-          [0, null],
+          null,
           true,
         );
         drawChart(
