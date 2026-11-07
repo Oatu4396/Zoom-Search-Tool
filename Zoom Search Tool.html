@@ -1265,8 +1265,10 @@
                 : null,
             );
           }
-          previousRoots =
-            roots.length === 2 && roots.every(Boolean) ? roots : null;
+          // Keep the last complete pair when a root is temporarily missing near a pole.
+          if (roots.length === 2 && roots.every(Boolean)) {
+            previousRoots = roots;
+          }
         }
         return branches;
       }
