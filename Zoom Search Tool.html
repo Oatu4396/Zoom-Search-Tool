@@ -1945,12 +1945,17 @@
             "stroke-dasharray": s.dash || "",
             ...(roundedTicks ? { "clip-path": `url(#${id}-clip)` } : {}),
           });
+          const endpoint = roundedTicks
+            ? s.data.findLast((p) => p && p.every(Number.isFinite))
+            : null;
+          if (roundedTicks && !endpoint) return;
           createSvgElement(
             plotSvg,
             "text",
             {
-              x: 65 + i * 110,
-              y: 30,
+              x: endpoint ? x(endpoint[0]) + 6 : 65 + i * 110,
+              y: endpoint ? y(endpoint[1]) : 30,
+              ...(endpoint ? { "dominant-baseline": "middle" } : {}),
               style: `fill:${s.color || GROUP_COLORS[i % 4]}`,
             },
             s.name,
