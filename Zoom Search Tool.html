@@ -1818,7 +1818,7 @@
 
       // Render sampled curves with gaps for missing data and optional explicit vertical limits.
 
-      function drawChart(id, series, yLabel, yRange = null) {
+      function drawChart(id, series, yLabel, yRange = null, roundedTicks = false) {
         const plotSvg = getElement(id);
         plotSvg.replaceChildren();
         const data = series.flatMap((s) =>
@@ -1854,10 +1854,27 @@
           ymin -= pad;
           ymax += pad;
         }
+        let yTickCount = 4;
+        if (roundedTicks) {
+          const targetStep = (ymax - ymin) / 5,
+            magnitude = 10 ** Math.floor(Math.log10(targetStep)),
+            step = [1, 2, 2.5, 5, 10].reduce((best, value) =>
+              Math.abs(Math.log(value * magnitude / targetStep)) <
+              Math.abs(Math.log(best * magnitude / targetStep)) ? value : best,
+            ) * magnitude;
+          yTickCount = Math.ceil((ymax - ymin) / step);
+          ymax = ymin + yTickCount * step;
+          const clip = createSvgElement(
+            createSvgElement(plotSvg, "defs", {}),
+            "clipPath",
+            { id: id + "-clip" },
+          );
+          createSvgElement(clip, "rect", { x: 55, y: 35, width: 460, height: 200 });
+        }
         const x = (v) => 55 + ((v - xmin) / (xmax - xmin)) * 460,
           y = (v) => 235 - ((v - ymin) / (ymax - ymin)) * 200;
-        for (let i = 0; i <= 4; i++) {
-          let v = ymin + ((ymax - ymin) * i) / 4;
+        for (let i = 0; i <= yTickCount; i++) {
+          let v = ymin + ((ymax - ymin) * i) / yTickCount;
           createSvgElement(plotSvg, "line", {
             x1: 55,
             x2: 515,
@@ -1873,8 +1890,10 @@
               y: y(v) + 4,
               "text-anchor": "end",
             },
-            formatNumber(v, 1),
+            roundedTicks ? String(Number(v.toPrecision(12))) : formatNumber(v, 1),
           );
+        }
+        for (let i = 0; i <= 4; i++) {
           let f = xmin + ((xmax - xmin) * i) / 4;
           createSvgElement(
             plotSvg,
@@ -1923,6 +1942,7 @@
             stroke: s.color || GROUP_COLORS[i % 4],
             "stroke-width": 2,
             "stroke-dasharray": s.dash || "",
+            ...(roundedTicks ? { "clip-path": `url(#${id}-clip)` } : {}),
           });
           createSvgElement(
             plotSvg,
@@ -2043,6 +2063,8 @@
             ),
           })),
           "Group z [mm]",
+          [0, null],
+          true,
         );
         drawChart(
           "angles" + branchIndex,
