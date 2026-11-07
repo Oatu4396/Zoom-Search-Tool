@@ -612,6 +612,16 @@
               Group crossings export as negative air thicknesses.
             </p>
           </section>
+          <section class="card">
+            <h2>Save / Load settings</h2>
+            <div class="buttons">
+              <button id="saveSettings" type="button">Save settings</button>
+              <button id="loadSettings" type="button">Load settings</button>
+            </div>
+            <input id="settingsFile" type="file" accept=".json,application/json" hidden />
+            <p class="muted">Save to a JSON file or load a previously saved setup.</p>
+            <p id="settingsStatus" class="muted" role="status" hidden></p>
+          </section>
         </aside>
         <div>
           <section class="card">
@@ -898,6 +908,23 @@
       const ZOOM_SAMPLE_COUNT = 101;
       const ZOOM_INTERVAL_COUNT = ZOOM_SAMPLE_COUNT - 1;
       const ZOOM_SLIDER_MAX = 1000;
+
+      const SETTINGS_FIELDS = {
+        shortEfl: "short",
+        longEfl: "long",
+        totalTrack: "length",
+        backFocalDistance: "bfl",
+        shortFNumber: "fshort",
+        longFNumber: "flong",
+        imageHeight: "imageHeight",
+        lensCount: "count",
+        lensThickness: "thick",
+        positiveIndex: "npos",
+        negativeIndex: "nneg",
+        wavelengthPreset: "wavelengthPreset",
+        fieldCount: "fieldCount",
+        zoomCount: "zoomCount",
+      };
 
       // 1. Inputs and settings
       // ----------------------
@@ -2223,6 +2250,112 @@
         }
       }
 
+      // Store only editable settings; plots and derived optical results are recalculated.
+      function captureSettings() {
+        return {
+          format: "zoom-search-tool",
+          version: 1,
+          values: Object.fromEntries(
+            Object.entries(SETTINGS_FIELDS).map(([name, id]) => [
+              name,
+              getElement(id).type === "number"
+                ? Number(getElement(id).value)
+                : getElement(id).value,
+            ]),
+          ),
+          groups: [0, 1, 2, 3].map((i) => ({
+            minimum: Number(getElement("focalMin" + i).value),
+            current: Number(getElement("f" + i).value),
+            maximum: Number(getElement("focalMax" + i).value),
+          })),
+          stopGroup: stopGroupIndex + 1,
+          sphericalCorrection: getElement("sphericalCorrection").checked,
+          zoomPosition: Number(getElement("zoom").value),
+        };
+      }
+
+      function applySettings(settings) {
+        Object.entries(SETTINGS_FIELDS).forEach(([name, id]) => {
+          getElement(id).value = settings.values[name];
+        });
+        settings.groups.forEach((group, i) => {
+          const slider = getElement("focalSlider" + i),
+            current = getElement("f" + i);
+          getElement("focalMin" + i).value = slider.min = current.min = group.minimum;
+          getElement("focalMax" + i).value = slider.max = current.max = group.maximum;
+          slider.value = current.value = group.current;
+        });
+        stopGroupIndex = settings.stopGroup - 1;
+        document.querySelectorAll("[data-stop]").forEach((checkbox) => {
+          checkbox.checked = Number(checkbox.dataset.stop) === stopGroupIndex;
+        });
+        getElement("sphericalCorrection").checked = settings.sphericalCorrection;
+        getElement("zoom").value = settings.zoomPosition;
+      }
+
+      function saveSettings() {
+        try {
+          readInputs();
+          readExportSettings();
+          downloadTextFile(
+            "Zoom_Search_Settings.json",
+            JSON.stringify(captureSettings(), null, 2) + "\n",
+          );
+          getElement("settingsStatus").textContent = "Settings saved.";
+          getElement("settingsStatus").hidden = false;
+        } catch (error) {
+          getElement("error").textContent = error.message;
+        }
+      }
+
+      async function loadSettings(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        try {
+          const settings = JSON.parse(await file.text());
+          if (
+            settings?.format !== "zoom-search-tool" || settings.version !== 1 ||
+            !settings.values || !Array.isArray(settings.groups) ||
+            settings.groups.length !== 4 ||
+            !Number.isInteger(settings.stopGroup) ||
+            settings.stopGroup < 1 || settings.stopGroup > 4 ||
+            typeof settings.sphericalCorrection !== "boolean" ||
+            !Number.isFinite(settings.zoomPosition) ||
+            settings.zoomPosition < 0 || settings.zoomPosition > ZOOM_SLIDER_MAX
+          ) throw Error("Choose a Zoom Search Tool settings JSON file (version 1).");
+          Object.entries(SETTINGS_FIELDS).forEach(([name, id]) => {
+            const input = getElement(id), value = settings.values[name];
+            if (input.type === "number"
+              ? !Number.isFinite(value)
+              : !Array.from(input.options).some((option) => option.value === value))
+              throw Error("Invalid setting: " + name + ".");
+          });
+          if (settings.groups.some((group) =>
+            !group || ![group.minimum, group.current, group.maximum].every(Number.isFinite) ||
+            group.minimum >= group.maximum || group.current < group.minimum ||
+            group.current > group.maximum || group.current === 0
+          )) throw Error("Invalid group focal lengths or slider ranges.");
+
+          const previous = captureSettings();
+          applySettings(settings);
+          try {
+            readInputs();
+            readExportSettings();
+          } catch (error) {
+            applySettings(previous);
+            throw error;
+          }
+          solveAndRender();
+          getElement("settingsStatus").textContent = "Settings loaded.";
+          getElement("settingsStatus").hidden = false;
+        } catch (error) {
+          getElement("settingsStatus").textContent = "Could not load settings: " + error.message;
+          getElement("settingsStatus").hidden = false;
+        } finally {
+          event.target.value = "";
+        }
+      }
+
       // Sliders update continuously; numeric values commit when editing finishes.
       function handleFocalSliderInput(groupIndex) {
         getElement("f" + groupIndex).value = getElement(
@@ -2340,6 +2473,9 @@
       // Keep event wiring in one place; numerical functions do not register listeners.
 
       function bindEvents() {
+        getElement("saveSettings").onclick = saveSettings;
+        getElement("loadSettings").onclick = () => getElement("settingsFile").click();
+        getElement("settingsFile").onchange = loadSettings;
         getElement("currentFnumber").onchange = handleFNumberChange;
         getElement("currentEfl").onchange = handleEflChange;
         getElement("appearance").onclick = cycleAppearance;
