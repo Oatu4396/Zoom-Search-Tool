@@ -2155,7 +2155,13 @@
           }),
         );
         configuration.positions.forEach((z, g) => {
-          const group = createSvgElement(layoutSvg, "g");
+          const group = createSvgElement(layoutSvg, "g"),
+            lensX = toScreenX(z),
+            positive = config.groupFocalLengths[g] > 0,
+            topTip = positive ? 35 : 45,
+            topWing = positive ? 45 : 35,
+            bottomTip = positive ? 270 : 260,
+            bottomWing = positive ? 260 : 270;
           createSvgElement(group, "line", {
             x1: toScreenX(z),
             x2: toScreenX(z),
@@ -2163,6 +2169,13 @@
             y2: 270,
             stroke: GROUP_COLORS[g],
             "stroke-width": g === stopGroupIndex ? 5 : 3,
+          });
+          createSvgElement(group, "path", {
+            d: `M ${lensX - 8} ${topWing} L ${lensX} ${topTip} L ${lensX + 8} ${topWing} M ${lensX - 8} ${bottomWing} L ${lensX} ${bottomTip} L ${lensX + 8} ${bottomWing}`,
+            fill: "none",
+            stroke: GROUP_COLORS[g],
+            "stroke-width": g === stopGroupIndex ? 5 : 3,
+            "stroke-linejoin": "round",
           });
           createSvgElement(
             group,
