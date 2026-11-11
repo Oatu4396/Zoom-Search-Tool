@@ -73,7 +73,7 @@ $$
 The two propagation relations are $y_3=y_2+(z_3-z_2)u_2$ and $b/F=y_3+(z_4-z_3)u_*$. Eliminating $z_3$ gives a quadratic residual in the normalized position $x=z_2/z_4$:
 
 $$
-Q(x)=\left[\frac{b}{F}-y_3-(z_4-z_2)u_*\right]u_2
+Q(x)=\left( \frac{b}{F}-y_3-(z_4-z_2)u_* \right) u_2
       +u_*(y_3-y_2)=0.
 $$
 
