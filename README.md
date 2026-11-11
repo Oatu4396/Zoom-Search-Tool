@@ -97,6 +97,6 @@ The export creates a starting prescription with 3, 4, or 5 singlets per group. S
 
 Available wavelength presets are monochromatic, dFC (default), eFC, LWIR, and MWIR. The stop is exported as a separate plane dummy surface, and overlapping groups retain negative air thicknesses.
 
-**Spherical correction (experimental)** adjusts the lens powers within each group to reduce primary spherical aberration. It requires zero lens thickness and treats each group separately.
+**Spherical correction (experimental)** numerically redistributes lens powers to reduce the mean squared primary spherical-aberration sum of the complete system across 101 zoom positions. Each group retains its target focal length, and lens thickness stays at the entered value. The search starts from two power distributions and retains the best result found.
 
 The layout is a paraxial model, and the exported prescription is an optimization seed. Real-surface aberrations and finite lens thickness can change its behavior. Check EFL, focus, apertures, and image quality in CODE V before developing the design further.

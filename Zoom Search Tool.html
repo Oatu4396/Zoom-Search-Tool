@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="auto">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -266,10 +266,56 @@
         display: block;
         overflow: hidden;
       }
+      svg {
+        font-size: 11px;
+      }
       svg text {
         font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-        font-size: 11px;
+        font-size: inherit;
         fill: var(--muted);
+      }
+      .zoom-chart {
+        cursor: crosshair;
+        touch-action: none;
+        user-select: none;
+      }
+      .solution > section + section,
+      .solution > .plot-pair {
+        margin-top: 20px;
+      }
+      .saved-layouts {
+        display: grid;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .saved-layout-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .layout-name {
+        flex: 1;
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      input.layout-name {
+        width: 0;
+        margin: 0;
+      }
+      .layout-action {
+        width: 30px;
+        height: 30px;
+        padding: 6px;
+        flex-shrink: 0;
+      }
+      .layout-action svg {
+        width: 16px;
+        height: 16px;
+      }
+      .plot-pair {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
       }
       .scroll {
         overflow: auto;
@@ -300,14 +346,6 @@
       }
       .error {
         color: var(--danger);
-      }
-      details summary {
-        cursor: pointer;
-        font-weight: 600;
-      }
-      details p {
-        font-size: 12px;
-        color: var(--muted);
       }
       a {
         color: var(--link);
@@ -444,15 +482,17 @@
         title="View repository on GitHub"
       >
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M12 .75a11.25 11.25 0 0 0-3.56 21.92c.56.1.77-.24.77-.54v-2.1c-3.13.68-3.79-1.33-3.79-1.33-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.68.08-.68 1.13.08 1.72 1.16 1.72 1.16 1 1.72 2.63 1.22 3.27.93.1-.73.39-1.22.71-1.5-2.5-.29-5.13-1.25-5.13-5.56 0-1.23.44-2.24 1.16-3.03-.12-.28-.5-1.43.11-2.98 0 0 .94-.3 3.1 1.16a10.8 10.8 0 0 1 5.62 0c2.15-1.46 3.1-1.16 3.1-1.16.61 1.55.23 2.7.11 2.98.72.79 1.16 1.8 1.16 3.03 0 4.32-2.63 5.27-5.14 5.55.4.35.76 1.03.76 2.08v3.1c0 .3.2.65.77.54A11.25 11.25 0 0 0 12 .75Z" />
+          <path
+            d="M12 .75a11.25 11.25 0 0 0-3.56 21.92c.56.1.77-.24.77-.54v-2.1c-3.13.68-3.79-1.33-3.79-1.33-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.68.08-.68 1.13.08 1.72 1.16 1.72 1.16 1 1.72 2.63 1.22 3.27.93.1-.73.39-1.22.71-1.5-2.5-.29-5.13-1.25-5.13-5.56 0-1.23.44-2.24 1.16-3.03-.12-.28-.5-1.43.11-2.98 0 0 .94-.3 3.1 1.16a10.8 10.8 0 0 1 5.62 0c2.15-1.46 3.1-1.16 3.1-1.16.61 1.55.23 2.7.11 2.98.72.79 1.16 1.8 1.16 3.03 0 4.32-2.63 5.27-5.14 5.55.4.35.76 1.03.76 2.08v3.1c0 .3.2.65.77.54A11.25 11.25 0 0 0 12 .75Z"
+          />
         </svg>
       </a>
       <button
         class="appearance"
         id="appearance"
         type="button"
-        aria-label="Appearance: Light. Switch to Dark"
-        title="Light · switch to Dark"
+        aria-label="Appearance: Auto. Switch to Light"
+        title="Auto · switch to Light"
       >
         <svg
           viewBox="0 0 24 24"
@@ -463,10 +503,8 @@
           stroke-linejoin="round"
           aria-hidden="true"
         >
-          <circle cx="12" cy="12" r="4" />
-          <path
-            d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"
-          />
+          <rect x="3" y="4" width="18" height="13" rx="2" />
+          <path d="M8 21h8M12 17v4" />
         </svg></button
       ><span class="tag">OPT 544 / FINAL PROJECT</span>
       <h1>Zoom Search Tool</h1>
@@ -607,19 +645,28 @@
             <p class="muted">
               Symmetric singlets touch within each group. Private glasses use
               the entered indices at every preset wavelength (no dispersion
-              model). Finite thickness changes principal planes and group power:
-              this is an optimization seed, not a validated equivalent lens.
-              Group crossings export as negative air thicknesses.
+              model). Finite thickness shifts principal planes. Recheck EFL,
+              focus, and apertures in CODE V. Group crossings export as negative
+              air thicknesses.
             </p>
           </section>
           <section class="card">
             <h2>Save / Load settings</h2>
             <div class="buttons">
-              <button id="saveSettings" type="button">Save settings</button>
-              <button id="loadSettings" type="button">Load settings</button>
+              <button id="saveLayout" type="button">Save settings</button>
+              <button id="resetSettings" type="button">Reset</button>
             </div>
-            <input id="settingsFile" type="file" accept=".json,application/json" hidden />
-            <p class="muted">Save to a JSON file or load a previously saved setup.</p>
+            <div class="buttons">
+              <button id="importSettings" type="button">Import JSON</button>
+              <button id="exportSettings" type="button">Export JSON</button>
+            </div>
+            <input
+              id="settingsFile"
+              type="file"
+              accept=".json,application/json"
+              hidden
+            />
+            <div id="savedLayouts" class="saved-layouts"></div>
             <p id="settingsStatus" class="muted" role="status" hidden></p>
           </section>
         </aside>
@@ -670,15 +717,15 @@
           <!-- Both roots share the zoom controls above; each panel owns its layout and plots. -->
           <!-- Mirrored solution panels: element IDs end in the zero-based branch index. -->
           <div class="solutions">
-            <section class="solution" aria-label="Solution 1">
-              <section class="card">
+            <section class="solution card" aria-label="Solution 1">
+              <section>
                 <div class="solution-heading">
                   <h2>Solution 1</h2>
                   <button data-export="0">Export .seq</button>
                 </div>
                 <p id="status0" class="status" aria-live="polite"></p>
               </section>
-              <section class="card">
+              <section>
                 <h2>Paraxial layout</h2>
                 <svg
                   id="layout0"
@@ -709,28 +756,30 @@
                   </table>
                 </div>
               </section>
-              <section class="card">
+              <section>
                 <h2>Motion & crossings</h2>
                 <svg id="motion0" viewBox="0 0 540 280"></svg>
               </section>
-              <section class="card">
-                <h2>Incident angles</h2>
-                <svg id="angles0" viewBox="0 0 540 280"></svg>
-              </section>
-              <section class="card">
-                <h2>Stop diameter</h2>
-                <svg id="aperture0" viewBox="0 0 540 280"></svg>
-              </section>
+              <div class="plot-pair">
+                <section>
+                  <h2>Incident angles</h2>
+                  <svg id="angles0" viewBox="0 0 540 280"></svg>
+                </section>
+                <section>
+                  <h2>Stop diameter</h2>
+                  <svg id="aperture0" viewBox="0 0 540 280"></svg>
+                </section>
+              </div>
             </section>
-            <section class="solution" aria-label="Solution 2">
-              <section class="card">
+            <section class="solution card" aria-label="Solution 2">
+              <section>
                 <div class="solution-heading">
                   <h2>Solution 2</h2>
                   <button data-export="1">Export .seq</button>
                 </div>
                 <p id="status1" class="status" aria-live="polite"></p>
               </section>
-              <section class="card">
+              <section>
                 <h2>Paraxial layout</h2>
                 <svg
                   id="layout1"
@@ -761,18 +810,20 @@
                   </table>
                 </div>
               </section>
-              <section class="card">
+              <section>
                 <h2>Motion & crossings</h2>
                 <svg id="motion1" viewBox="0 0 540 280"></svg>
               </section>
-              <section class="card">
-                <h2>Incident angles</h2>
-                <svg id="angles1" viewBox="0 0 540 280"></svg>
-              </section>
-              <section class="card">
-                <h2>Stop diameter</h2>
-                <svg id="aperture1" viewBox="0 0 540 280"></svg>
-              </section>
+              <div class="plot-pair">
+                <section>
+                  <h2>Incident angles</h2>
+                  <svg id="angles1" viewBox="0 0 540 280"></svg>
+                </section>
+                <section>
+                  <h2>Stop diameter</h2>
+                  <svg id="aperture1" viewBox="0 0 540 280"></svg>
+                </section>
+              </div>
             </section>
           </div>
           <section class="card" style="margin-top: 18px">
@@ -800,36 +851,6 @@
               </table>
             </div>
           </section>
-          <details class="card">
-            <summary>Model & conventions</summary>
-            <p>
-              Ray vector [height, slope], translation T(d) = [[1,d],[0,1]], thin
-              group L(φ) = [[1,0],[−φ,1]]. For system matrix [A,B;C,D] through
-              G4, EFL = −1/C and fixed-image focus requires A + bC = 0.
-              Eliminating G3 position gives a quadratic in G2 position. Both
-              finite real roots are retained and verified against the system
-              matrix, including roots outside the ordered group interval.
-            </p>
-            <p>
-              The Petzval estimate uses Σφᵢ/nᵢ and the squared-power sum uses
-              Σφᵢ². These are first-order proxies; no aberration, tolerance,
-              finite-element collision, or real-surface AOI prediction is
-              implied. F/# varies linearly with requested EFL. The pupil is
-              aimed at the selected group; incident slope is measured
-              immediately before each thin group. Root coverage and extrema are
-              sampled, not a proof between samples.
-            </p>
-            <p>
-              CODE V private-glass convention:
-              <a
-                href="https://www.hajim.rochester.edu/optics/sites/moore/downloads/download_content/grin_design_tools/A%20Guide%20for%20Designing%20with%20Spherical%20Gradients%20in%20Code%20V.pdf"
-                target="_blank"
-                rel="noopener"
-                >University of Rochester CODE V guide</a
-              >. Native CODE V execution is required to verify the exported
-              seed.
-            </p>
-          </details>
         </div>
       </div>
     </main>
@@ -842,7 +863,7 @@
        *   - Change the initial group powers in DEFAULT_GROUP_FOCAL_LENGTHS below.
        *   - Initial system/export values live in the HTML input elements above.
        *   - Sections 2–3 implement the thin-group model and branch continuation.
-       *   - Sections 4–5 build the spherical-singlet seed exported to CODE V.
+       *   - Sections 4–5 correct spherical aberration and build the CODE V seed.
        *   - Sections 6–8 connect calculations to the UI; they do not alter the optics.
        *
        * Units: distances and focal lengths in mm, wavelengths in nm, displayed angles
@@ -908,6 +929,10 @@
       const ZOOM_SAMPLE_COUNT = 101;
       const ZOOM_INTERVAL_COUNT = ZOOM_SAMPLE_COUNT - 1;
       const ZOOM_SLIDER_MAX = 1000;
+      const BROWSER_SETTINGS_KEY = "zoom-search-tool-settings-v1";
+      const SAVED_LAYOUTS_KEY = "zoom-search-tool-layouts-v1";
+      let savedLayouts = [];
+      let initialSettings = null;
 
       const SETTINGS_FIELDS = {
         shortEfl: "short",
@@ -991,9 +1016,6 @@
         };
         if (settings.lensThickness < 0) {
           throw Error("Lens thickness must be nonnegative.");
-        }
-        if (settings.correctSpherical && settings.lensThickness !== 0) {
-          throw Error("Spherical correction requires zero lens thickness.");
         }
         if (!Number.isInteger(settings.zoomCount) || settings.zoomCount < 2) {
           throw Error("Zoom positions must be an integer of at least 2.");
@@ -1434,182 +1456,205 @@
         return height;
       }
 
-      // 4. Spherical-correction algebra
-      // -------------------------------
+      // 4. Whole-system spherical correction
+      // -------------------------------------
 
-      // Polynomials use ascending coefficients: [constant, x, x², ...].
-
-      function addPolynomials(a, b) {
-        return Array.from(
-          {
-            length: Math.max(a.length, b.length),
-          },
-          (_, i) => (a[i] || 0) + (b[i] || 0),
-        );
+      // A symmetric singlet has surface powers k=(n-1)/R and reduced thickness t/n.
+      function seedSinglet(power, thickness, config) {
+        const index = power >= 0 ? config.positiveIndex : config.negativeIndex,
+          discriminant = 1 - (power * thickness) / index;
+        if (discriminant < 0) return null;
+        const surfacePower = power / (1 + Math.sqrt(discriminant));
+        return {
+          power,
+          index,
+          radius: surfacePower === 0 ? 0 : (index - 1) / surfacePower,
+          glass: power >= 0 ? "ZSPOS" : "ZSNEG",
+        };
       }
 
-      function scalePolynomial(a, factor) {
-        return a.map((value) => value * factor);
+      function singletMatrix(lens, thickness) {
+        const k = lens.radius === 0 ? 0 : (lens.index - 1) / lens.radius,
+          distance = thickness / lens.index;
+        return [
+          1 - distance * k,
+          distance,
+          -2 * k + distance * k * k,
+          1 - distance * k,
+        ];
       }
 
-      function multiplyPolynomials(a, b) {
-        const result = Array(a.length + b.length - 1).fill(0);
-        a.forEach((value, i) =>
-          b.forEach((other, j) => (result[i + j] += value * other)),
-        );
-        return result;
-      }
-
-      // Build the primary Seidel spherical-aberration cubic for a unit-height collimated ray.
-      // All intra-group distances are zero. For normalized net power sign = ±1, N−1
-      // lenses have power sign*x/(N−1); the middle lens has power sign*(1−x).
-      // x>1 gives a central opposite-power lens while preserving total group power.
-      // For each surface: A=n(u+c), u′=[nu−(n′−n)c]/n′, S_I=−Σ A² Δ(u/n).
-      // Source: https://www.montana.edu/jshaw/documents/10%20EELE582_S15_Ray_Aberrations.pdf
-
-      function sphericalPolynomial(count, sign, positiveIndex, negativeIndex) {
-        let slope = [0],
-          spherical = [0];
-        for (let lens = 0; lens < count; lens++) {
-          const opposite = lens === Math.floor(count / 2),
-            power = opposite ? [sign, -sign] : [0, sign / (count - 1)],
-            lensSign = opposite ? -sign : sign,
-            index = lensSign > 0 ? positiveIndex : negativeIndex,
-            curvature = scalePolynomial(power, 1 / (2 * (index - 1)));
-          for (const [before, after, direction] of [
-            [1, index, 1],
-            [index, 1, -1],
-          ]) {
-            const surfaceCurvature = scalePolynomial(curvature, direction),
-              invariant = scalePolynomial(
-                addPolynomials(slope, surfaceCurvature),
-                before,
-              ),
-              outgoing = scalePolynomial(
-                addPolynomials(
-                  scalePolynomial(slope, before),
-                  scalePolynomial(surfaceCurvature, before - after),
-                ),
-                1 / after,
-              ),
-              change = addPolynomials(
-                scalePolynomial(outgoing, 1 / after),
-                scalePolynomial(slope, -1 / before),
-              );
-            spherical = addPolynomials(
-              spherical,
-              scalePolynomial(
-                multiplyPolynomials(
-                  multiplyPolynomials(invariant, invariant),
-                  change,
-                ),
-                -1,
-              ),
+      // Fit the final singlet in each group so its complete thick-lens matrix has C=-1/f.
+      function correctionGroups(config, settings, parameters) {
+        const groups = [],
+          count = settings.lensCount,
+          thickness = settings.lensThickness;
+        for (let groupIndex = 0; groupIndex < 4; groupIndex++) {
+          const targetPower = 1 / config.groupFocalLengths[groupIndex],
+            lenses = [];
+          let matrix = [1, 0, 0, 1];
+          for (let i = 0; i < count - 1; i++) {
+            const lens = seedSinglet(
+              targetPower * parameters[groupIndex * (count - 1) + i],
+              thickness,
+              config,
             );
-            slope = outgoing;
+            if (!lens) return null;
+            lenses.push(lens);
+            matrix = multiplyMatrices(singletMatrix(lens, thickness), matrix);
           }
+          const candidates = [];
+          for (const index of [config.positiveIndex, config.negativeIndex]) {
+            const distance = thickness / index,
+              a = distance * matrix[0],
+              b = -2 * matrix[0] - distance * matrix[2],
+              c = matrix[2] + targetPower;
+            let roots;
+            if (Math.abs(a) < 1e-15) {
+              roots = Math.abs(b) < 1e-15 ? [] : [-c / b];
+            } else {
+              const discriminant = b * b - 4 * a * c;
+              if (discriminant < 0) continue;
+              const q =
+                -0.5 * (b + (b >= 0 ? 1 : -1) * Math.sqrt(discriminant));
+              roots = q === 0 ? [-b / (2 * a)] : [q / a, c / q];
+            }
+            for (const k of roots) {
+              const power = 2 * k - distance * k * k,
+                expectedIndex =
+                  power >= 0 ? config.positiveIndex : config.negativeIndex;
+              if (
+                !Number.isFinite(k) ||
+                index !== expectedIndex ||
+                1 - distance * k < 0
+              )
+                continue;
+              candidates.push({
+                power,
+                index,
+                radius: k === 0 ? 0 : (index - 1) / k,
+                glass: power >= 0 ? "ZSPOS" : "ZSNEG",
+              });
+            }
+          }
+          if (!candidates.length) return null;
+          candidates.sort((a, b) => Math.abs(a.power) - Math.abs(b.power));
+          lenses.push(candidates[0]);
+          groups.push(lenses);
         }
-        return spherical;
+        return groups;
       }
 
-      // Closed-form real roots using Cardano, with quadratic/linear degeneracies.
-
-      function realCubicRoots(coefficients) {
-        const [constant = 0, linear = 0, quadratic = 0, cubic = 0] =
-            coefficients,
-          scale = Math.max(...coefficients.map(Math.abs), 1e-30);
-        if (Math.abs(cubic) < 1e-12 * scale) {
-          if (Math.abs(quadratic) < 1e-12 * scale) {
-            return Math.abs(linear) > 1e-12 * scale ? [-constant / linear] : [];
+      // Trace the on-axis marginal ray through every exported spherical surface.
+      // S_I = -sum(A^2*y*delta(u/n)), A=n*(u+y/R). Minimize mean S_I^2 over zoom.
+      function systemSphericalScore(groups, samples, thickness) {
+        let squaredSum = 0;
+        const groupDepth = groups[0].length * thickness;
+        for (const sample of samples) {
+          let height = sample.efl / (2 * sample.fNumber),
+            slope = 0,
+            spherical = 0;
+          for (let groupIndex = 0; groupIndex < 4; groupIndex++) {
+            if (groupIndex)
+              height +=
+                (sample.positions[groupIndex] -
+                  sample.positions[groupIndex - 1] -
+                  groupDepth) *
+                slope;
+            for (const lens of groups[groupIndex]) {
+              const curvature = lens.radius === 0 ? 0 : 1 / lens.radius;
+              for (const [before, after, c] of [
+                [1, lens.index, curvature],
+                [lens.index, 1, -curvature],
+              ]) {
+                const invariant = before * (slope + height * c),
+                  outgoing =
+                    (before * slope - (after - before) * c * height) / after;
+                spherical -=
+                  invariant *
+                  invariant *
+                  height *
+                  (outgoing / after - slope / before);
+                slope = outgoing;
+                if (after !== 1) height += thickness * slope;
+              }
+            }
           }
-          const discriminant = linear * linear - 4 * quadratic * constant;
-          return discriminant < 0
-            ? []
-            : [
-                (-linear + Math.sqrt(discriminant)) / (2 * quadratic),
-                (-linear - Math.sqrt(discriminant)) / (2 * quadratic),
-              ];
+          squaredSum += spherical * spherical;
         }
-        const normalizedQuadratic = quadratic / cubic,
-          normalizedLinear = linear / cubic,
-          normalizedConstant = constant / cubic,
-          p =
-            normalizedLinear - (normalizedQuadratic * normalizedQuadratic) / 3,
-          q =
-            (2 * normalizedQuadratic ** 3) / 27 -
-            (normalizedQuadratic * normalizedLinear) / 3 +
-            normalizedConstant,
-          discriminant = (q * q) / 4 + p ** 3 / 27,
-          tolerance =
-            1e-12 * Math.max((q * q) / 4, Math.abs(p ** 3 / 27), 1e-30);
-        if (discriminant > tolerance) {
-          return [
-            Math.cbrt(-q / 2 + Math.sqrt(discriminant)) +
-              Math.cbrt(-q / 2 - Math.sqrt(discriminant)) -
-              normalizedQuadratic / 3,
-          ];
-        }
-        if (discriminant >= -tolerance) {
-          const u = Math.cbrt(-q / 2);
-          return [
-            2 * u - normalizedQuadratic / 3,
-            -u - normalizedQuadratic / 3,
-          ];
-        }
-        const radius = 2 * Math.sqrt(-p / 3),
-          angle = Math.acos(
-            Math.max(-1, Math.min(1, ((3 * q) / (2 * p)) * Math.sqrt(-3 / p))),
+        const score = squaredSum / samples.length;
+        return Number.isFinite(score) ? score : Infinity;
+      }
+
+      function optimizeSphericalCorrection(config, settings, exportSamples) {
+        const branches = sampleZoom(config),
+          samples = branches.find(
+            (branch) =>
+              branch[0] &&
+              branch[0].positions.every(
+                (z, i) =>
+                  Math.abs(z - exportSamples[0].positions[i]) <
+                  1e-6 * Math.max(1, Math.abs(z)),
+              ),
           );
-        return [0, 1, 2].map(
-          (k) =>
-            radius * Math.cos((angle + 2 * k * Math.PI) / 3) -
-            normalizedQuadratic / 3,
-        );
-      }
-
-      // Choose the valid correction root with the least internal positive/negative power.
-
-      function correctedGroupLenses(
-        focalLength,
-        count,
-        positiveIndex,
-        negativeIndex,
-      ) {
-        const sign = Math.sign(focalLength),
-          coefficients = sphericalPolynomial(
-            count,
-            sign,
-            positiveIndex,
-            negativeIndex,
-          ),
-          roots = realCubicRoots(coefficients).filter(
-            (x) => Number.isFinite(x) && x > 1,
-          ),
-          // Prefer the solution with the least internal positive/negative power.
-          split = Math.min(...roots);
-        if (!Number.isFinite(split)) {
+        if (!samples || samples.some((sample) => !sample)) {
           throw Error(
-            "No spherical-correction split exists for these indices.",
+            "Spherical correction needs finite configurations throughout zoom.",
           );
         }
-        return Array.from(
-          {
-            length: count,
-          },
-          (_, lens) => {
-            const power =
-                (lens === Math.floor(count / 2)
-                  ? 1 - split
-                  : split / (count - 1)) / focalLength,
-              index = power > 0 ? positiveIndex : negativeIndex;
-            return {
-              radius: (2 * (index - 1)) / power,
-              power,
-              index,
-              glass: power > 0 ? "ZSPOS" : "ZSNEG",
-            };
-          },
-        );
+        const count = settings.lensCount,
+          equal = Array(4 * (count - 1)).fill(1 / count),
+          mixed = Array.from({ length: equal.length }, (_, i) =>
+            i % (count - 1) === Math.floor(count / 2) ? -1 : 2 / (count - 1),
+          ),
+          evaluate = (parameters) => {
+            const groups = correctionGroups(config, settings, parameters);
+            return groups
+              ? systemSphericalScore(groups, samples, settings.lensThickness)
+              : Infinity;
+          };
+        let bestParameters = equal,
+          bestScore = evaluate(equal);
+        for (const start of [equal, mixed]) {
+          let parameters = start.slice(),
+            score = evaluate(parameters),
+            step = 0.5;
+          if (!Number.isFinite(score)) continue;
+          for (let iteration = 0; iteration < 80 && step > 1e-4; iteration++) {
+            let improved = false;
+            for (let i = 0; i < parameters.length; i++) {
+              let next = parameters[i],
+                nextScore = score;
+              for (const direction of [-1, 1]) {
+                const trial = parameters.slice();
+                trial[i] += direction * step;
+                const trialScore = evaluate(trial);
+                if (
+                  trialScore <
+                  nextScore - 1e-12 * Math.max(nextScore, 1e-30)
+                ) {
+                  next = trial[i];
+                  nextScore = trialScore;
+                }
+              }
+              if (nextScore < score) {
+                parameters[i] = next;
+                score = nextScore;
+                improved = true;
+              }
+            }
+            step = improved ? Math.min(1, step * 1.1) : step / 2;
+          }
+          if (score < bestScore) {
+            bestParameters = parameters;
+            bestScore = score;
+          }
+        }
+        if (!Number.isFinite(bestScore))
+          throw Error(
+            "No finite spherical-correction seed for these settings.",
+          );
+        return correctionGroups(config, settings, bestParameters);
       }
 
       // 5. CODE V seed construction
@@ -1617,17 +1662,11 @@
 
       // Build the seed singlets from equal powers or the spherical-correction power split.
 
-      function buildGroupLenses(config, settings) {
+      function buildGroupLenses(config, settings, samples) {
         const { lensCount, lensThickness, correctSpherical } = settings;
+        if (correctSpherical)
+          return optimizeSphericalCorrection(config, settings, samples);
         return config.groupFocalLengths.map((focalLength) => {
-          if (correctSpherical) {
-            return correctedGroupLenses(
-              focalLength,
-              lensCount,
-              config.positiveIndex,
-              config.negativeIndex,
-            );
-          }
           const index =
               focalLength > 0 ? config.positiveIndex : config.negativeIndex,
             power = 1 / (focalLength * lensCount),
@@ -1663,7 +1702,7 @@
         selectedStopGroup,
       ) {
         const { lensCount, lensThickness, zoomCount } = settings;
-        const groupLenses = buildGroupLenses(config, settings);
+        const groupLenses = buildGroupLenses(config, settings, samples);
         const groupDepth = lensCount * lensThickness,
           groupStarts = samples.map((s) =>
             s.positions.map((z) => z - groupDepth / 2),
@@ -1818,9 +1857,29 @@
 
       // Render sampled curves with gaps for missing data and optional explicit vertical limits.
 
-      function drawChart(id, series, yLabel, yRange = null, roundedTicks = false) {
+      function drawChart(
+        id,
+        series,
+        yLabel,
+        yRange = null,
+        roundedTicks = false,
+        endpointLabels = false,
+      ) {
         const plotSvg = getElement(id);
         plotSvg.replaceChildren();
+        const compact = Boolean(plotSvg.closest(".plot-pair")),
+          width = compact ? plotSvg.clientWidth || 270 : 540,
+          height = compact ? 170 : 280,
+          left = compact ? 46 : 55,
+          right = compact ? width - 12 : 515,
+          top = compact ? 42 : 35,
+          bottom = compact ? height - 40 : 235;
+        plotSvg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        plotSvg.style.fontSize = compact ? "13px" : "11px";
+        plotSvg.dataset.plotLeft = left;
+        plotSvg.dataset.plotRight = right;
+        plotSvg.dataset.plotTop = top;
+        plotSvg.dataset.plotBottom = bottom;
         const data = series.flatMap((s) =>
           s.data.filter((p) => p && p.every(Number.isFinite)),
         );
@@ -1858,11 +1917,16 @@
         if (roundedTicks) {
           const targetStep = (Math.max(0, ymax) - Math.min(0, ymin)) / 5 || 1,
             magnitude = 10 ** Math.floor(Math.log10(targetStep)),
-            step = [1, 2, 2.5, 5, 10].reduce((best, value) =>
-              Math.abs(Math.log(value * magnitude / targetStep)) <
-              Math.abs(Math.log(best * magnitude / targetStep)) ? value : best,
-            ) * magnitude;
-          ymin = Math.min(-step, Math.floor(ymin / step) * step);
+            step =
+              [1, 2, 2.5, 5, 10].reduce((best, value) =>
+                Math.abs(Math.log((value * magnitude) / targetStep)) <
+                Math.abs(Math.log((best * magnitude) / targetStep))
+                  ? value
+                  : best,
+              ) * magnitude;
+          ymin = yRange
+            ? yRange[0]
+            : Math.min(-step, Math.floor(ymin / step) * step);
           ymax = Math.ceil(ymax / step) * step;
           yTickCount = Math.round((ymax - ymin) / step);
           const clip = createSvgElement(
@@ -1870,15 +1934,20 @@
             "clipPath",
             { id: id + "-clip" },
           );
-          createSvgElement(clip, "rect", { x: 55, y: 35, width: 460, height: 200 });
+          createSvgElement(clip, "rect", {
+            x: left,
+            y: top,
+            width: right - left,
+            height: bottom - top,
+          });
         }
-        const x = (v) => 55 + ((v - xmin) / (xmax - xmin)) * 460,
-          y = (v) => 235 - ((v - ymin) / (ymax - ymin)) * 200;
+        const x = (v) => left + ((v - xmin) / (xmax - xmin)) * (right - left),
+          y = (v) => bottom - ((v - ymin) / (ymax - ymin)) * (bottom - top);
         for (let i = 0; i <= yTickCount; i++) {
           let v = ymin + ((ymax - ymin) * i) / yTickCount;
           createSvgElement(plotSvg, "line", {
-            x1: 55,
-            x2: 515,
+            x1: left,
+            x2: right,
             y1: y(v),
             y2: y(v),
             stroke: "var(--line)",
@@ -1887,21 +1956,24 @@
             plotSvg,
             "text",
             {
-              x: 49,
+              x: left - 6,
               y: y(v) + 4,
               "text-anchor": "end",
             },
-            roundedTicks ? String(Number(v.toPrecision(12))) : formatNumber(v, 1),
+            roundedTicks
+              ? String(Number(v.toPrecision(12)))
+              : formatNumber(v, 1),
           );
         }
-        for (let i = 0; i <= 4; i++) {
-          let f = xmin + ((xmax - xmin) * i) / 4;
+        const xTickCount = compact ? 2 : 4;
+        for (let i = 0; i <= xTickCount; i++) {
+          let f = xmin + ((xmax - xmin) * i) / xTickCount;
           createSvgElement(
             plotSvg,
             "text",
             {
               x: x(f),
-              y: 253,
+              y: bottom + 18,
               "text-anchor": "middle",
             },
             formatNumber(f, 0),
@@ -1911,17 +1983,21 @@
           plotSvg,
           "text",
           {
-            x: 55,
-            y: 16,
+            x: compact ? 8 : left,
+            y: compact ? 12 : 16,
           },
-          yLabel,
+          compact
+            ? yLabel
+                .replace("Incident angle", "Angle")
+                .replace("Stop diameter", "Diameter")
+            : yLabel,
         );
         createSvgElement(
           plotSvg,
           "text",
           {
-            x: 290,
-            y: 275,
+            x: compact ? width / 2 : (left + right) / 2,
+            y: height - 5,
             "text-anchor": "middle",
           },
           "Target EFL [mm]",
@@ -1945,16 +2021,18 @@
             "stroke-dasharray": s.dash || "",
             ...(roundedTicks ? { "clip-path": `url(#${id}-clip)` } : {}),
           });
-          const endpoint = roundedTicks
+          const endpoint = endpointLabels
             ? s.data.findLast((p) => p && p.every(Number.isFinite))
             : null;
-          if (roundedTicks && !endpoint) return;
+          if (endpointLabels && !endpoint) return;
           createSvgElement(
             plotSvg,
             "text",
             {
-              x: endpoint ? x(endpoint[0]) + 6 : 65 + i * 110,
-              y: endpoint ? y(endpoint[1]) : 30,
+              x: endpoint
+                ? x(endpoint[0]) + 6
+                : left + 5 + (i * (right - left)) / series.length,
+              y: endpoint ? y(endpoint[1]) : compact ? 29 : 30,
               ...(endpoint ? { "dominant-baseline": "middle" } : {}),
               style: `fill:${s.color || GROUP_COLORS[i % 4]}`,
             },
@@ -1969,8 +2047,8 @@
         createSvgElement(plotSvg, "line", {
           x1: x(f),
           x2: x(f),
-          y1: 36,
-          y2: 235,
+          y1: top + 1,
+          y2: bottom,
           stroke: "var(--muted)",
           "stroke-dasharray": "3 4",
         });
@@ -1999,8 +2077,8 @@
       function renderGroupInputs() {
         getElement("powers").innerHTML = DEFAULT_GROUP_FOCAL_LENGTHS.map(
           (focalLength, groupIndex) => {
-            const minimum = Math.min(focalLength * 0.5, focalLength * 1.5),
-              maximum = Math.max(focalLength * 0.5, focalLength * 1.5);
+            const minimum = -200,
+              maximum = 200;
             return `<div>
             <label class="group-heading">
               <input type="checkbox" data-stop="${groupIndex}" aria-label="Stop at group ${groupIndex + 1}" title="Stop at group ${groupIndex + 1}" ${groupIndex === stopGroupIndex ? "checked" : ""}>
@@ -2055,6 +2133,7 @@
         for (let k = 0; k < 2; k++) {
           renderSolution(k, config, branches);
         }
+        saveBrowserSettings();
       }
 
       // Draw the motion, incidence-angle and stop-diameter charts for one branch.
@@ -2071,6 +2150,7 @@
           "Group z [mm]",
           null,
           true,
+          true,
         );
         drawChart(
           "angles" + branchIndex,
@@ -2081,7 +2161,8 @@
             ),
           })),
           "Incident angle [°]",
-          [-45, 45],
+          [0, null],
+          true,
         );
         drawChart(
           "aperture" + branchIndex,
@@ -2322,19 +2403,26 @@
         settings.groups.forEach((group, i) => {
           const slider = getElement("focalSlider" + i),
             current = getElement("f" + i);
-          getElement("focalMin" + i).value = slider.min = current.min = group.minimum;
-          getElement("focalMax" + i).value = slider.max = current.max = group.maximum;
+          getElement("focalMin" + i).value =
+            slider.min =
+            current.min =
+              group.minimum;
+          getElement("focalMax" + i).value =
+            slider.max =
+            current.max =
+              group.maximum;
           slider.value = current.value = group.current;
         });
         stopGroupIndex = settings.stopGroup - 1;
         document.querySelectorAll("[data-stop]").forEach((checkbox) => {
           checkbox.checked = Number(checkbox.dataset.stop) === stopGroupIndex;
         });
-        getElement("sphericalCorrection").checked = settings.sphericalCorrection;
+        getElement("sphericalCorrection").checked =
+          settings.sphericalCorrection;
         getElement("zoom").value = settings.zoomPosition;
       }
 
-      function saveSettings() {
+      function exportSettings() {
         try {
           readInputs();
           readExportSettings();
@@ -2342,55 +2430,208 @@
             "Zoom_Search_Settings.json",
             JSON.stringify(captureSettings(), null, 2) + "\n",
           );
-          getElement("settingsStatus").textContent = "Settings saved.";
+          getElement("settingsStatus").textContent = "Settings exported.";
           getElement("settingsStatus").hidden = false;
         } catch (error) {
           getElement("error").textContent = error.message;
         }
       }
 
-      async function loadSettings(event) {
+      function storeSavedLayouts(layouts) {
+        localStorage.setItem(SAVED_LAYOUTS_KEY, JSON.stringify(layouts));
+        savedLayouts = layouts;
+      }
+
+      function saveLayout() {
+        try {
+          readInputs();
+          readExportSettings();
+          const settings = captureSettings();
+          validateSettings(settings);
+          let number = 1;
+          while (
+            savedLayouts.some((layout) => layout.name === `Layout ${number}`)
+          )
+            number++;
+          storeSavedLayouts([
+            ...savedLayouts,
+            {
+              name: `Layout ${number}`,
+              settings,
+              appearance: document.documentElement.dataset.theme || "auto",
+            },
+          ]);
+          renderSavedLayouts();
+        } catch (error) {
+          getElement("settingsStatus").textContent = error.message;
+          getElement("settingsStatus").hidden = false;
+        }
+      }
+
+      function renameLayout(index, nameElement) {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "layout-name";
+        input.value = savedLayouts[index].name;
+        input.setAttribute("aria-label", "Layout name");
+        nameElement.replaceWith(input);
+        input.onblur = () => {
+          try {
+            const name = input.value.trim() || savedLayouts[index].name;
+            storeSavedLayouts(
+              savedLayouts.map((layout, i) =>
+                i === index ? { ...layout, name } : layout,
+              ),
+            );
+          } catch (error) {
+            getElement("settingsStatus").textContent = error.message;
+            getElement("settingsStatus").hidden = false;
+          }
+          nameElement.textContent = savedLayouts[index].name;
+          input.replaceWith(nameElement);
+        };
+        input.onkeydown = (event) => {
+          if (event.key === "Enter" || event.key === "Escape") input.blur();
+        };
+        input.focus();
+        input.select();
+      }
+
+      function renderSavedLayouts() {
+        const list = getElement("savedLayouts");
+        list.replaceChildren();
+        savedLayouts.forEach((layout, index) => {
+          const row = document.createElement("div"),
+            name = document.createElement("span");
+          row.className = "saved-layout-row";
+          name.className = "layout-name";
+          name.textContent = layout.name;
+          row.appendChild(name);
+          const actions = [
+            {
+              label: "Load",
+              path: "m4 12 5 5L20 6",
+              action: () => {
+                restoreSettings(layout.settings);
+                applyAppearance(layout.appearance || "auto");
+                solveAndRender();
+              },
+            },
+            {
+              label: "Rename",
+              path: "m16 3 5 5-12 12-6 1 1-6ZM14 5l5 5",
+              action: () => renameLayout(index, name),
+            },
+            {
+              label: "Delete",
+              path: "m6 6 12 12M6 18 18 6",
+              action: () => {
+                storeSavedLayouts(savedLayouts.filter((_, i) => i !== index));
+                renderSavedLayouts();
+              },
+            },
+          ];
+          actions.forEach(({ label, path, action }) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "layout-action";
+            button.setAttribute("aria-label", label + " layout");
+            button.title = label;
+            const icon = createSvgElement(button, "svg", {
+              viewBox: "0 0 24 24",
+              fill: "none",
+              stroke: "currentColor",
+              "stroke-width": 1.8,
+              "stroke-linecap": "round",
+              "stroke-linejoin": "round",
+              "aria-hidden": "true",
+            });
+            createSvgElement(icon, "path", { d: path });
+            button.onclick = () => {
+              try {
+                action();
+              } catch (error) {
+                getElement("settingsStatus").textContent = error.message;
+                getElement("settingsStatus").hidden = false;
+              }
+            };
+            row.appendChild(button);
+          });
+          list.appendChild(row);
+        });
+      }
+
+      function validateSettings(settings) {
+        if (
+          settings?.format !== "zoom-search-tool" ||
+          settings.version !== 1 ||
+          !settings.values ||
+          !Array.isArray(settings.groups) ||
+          settings.groups.length !== 4 ||
+          !Number.isInteger(settings.stopGroup) ||
+          settings.stopGroup < 1 ||
+          settings.stopGroup > 4 ||
+          typeof settings.sphericalCorrection !== "boolean" ||
+          !Number.isFinite(settings.zoomPosition) ||
+          settings.zoomPosition < 0 ||
+          settings.zoomPosition > ZOOM_SLIDER_MAX
+        )
+          throw Error(
+            "Choose a Zoom Search Tool settings JSON file (version 1).",
+          );
+        Object.entries(SETTINGS_FIELDS).forEach(([name, id]) => {
+          const input = getElement(id),
+            value = settings.values[name];
+          if (
+            input.type === "number"
+              ? !Number.isFinite(value)
+              : !Array.from(input.options).some(
+                  (option) => option.value === value,
+                )
+          )
+            throw Error("Invalid setting: " + name + ".");
+        });
+        if (
+          settings.groups.some(
+            (group) =>
+              !group ||
+              ![group.minimum, group.current, group.maximum].every(
+                Number.isFinite,
+              ) ||
+              group.minimum >= group.maximum ||
+              group.current < group.minimum ||
+              group.current > group.maximum ||
+              group.current === 0,
+          )
+        )
+          throw Error("Invalid group focal lengths or slider ranges.");
+      }
+
+      function restoreSettings(settings) {
+        validateSettings(settings);
+        const previous = captureSettings();
+        applySettings(settings);
+        try {
+          readInputs();
+          readExportSettings();
+        } catch (error) {
+          applySettings(previous);
+          throw error;
+        }
+      }
+
+      async function importSettings(event) {
         const file = event.target.files[0];
         if (!file) return;
         try {
           const settings = JSON.parse(await file.text());
-          if (
-            settings?.format !== "zoom-search-tool" || settings.version !== 1 ||
-            !settings.values || !Array.isArray(settings.groups) ||
-            settings.groups.length !== 4 ||
-            !Number.isInteger(settings.stopGroup) ||
-            settings.stopGroup < 1 || settings.stopGroup > 4 ||
-            typeof settings.sphericalCorrection !== "boolean" ||
-            !Number.isFinite(settings.zoomPosition) ||
-            settings.zoomPosition < 0 || settings.zoomPosition > ZOOM_SLIDER_MAX
-          ) throw Error("Choose a Zoom Search Tool settings JSON file (version 1).");
-          Object.entries(SETTINGS_FIELDS).forEach(([name, id]) => {
-            const input = getElement(id), value = settings.values[name];
-            if (input.type === "number"
-              ? !Number.isFinite(value)
-              : !Array.from(input.options).some((option) => option.value === value))
-              throw Error("Invalid setting: " + name + ".");
-          });
-          if (settings.groups.some((group) =>
-            !group || ![group.minimum, group.current, group.maximum].every(Number.isFinite) ||
-            group.minimum >= group.maximum || group.current < group.minimum ||
-            group.current > group.maximum || group.current === 0
-          )) throw Error("Invalid group focal lengths or slider ranges.");
-
-          const previous = captureSettings();
-          applySettings(settings);
-          try {
-            readInputs();
-            readExportSettings();
-          } catch (error) {
-            applySettings(previous);
-            throw error;
-          }
+          restoreSettings(settings);
           solveAndRender();
-          getElement("settingsStatus").textContent = "Settings loaded.";
+          getElement("settingsStatus").textContent = "Settings imported.";
           getElement("settingsStatus").hidden = false;
         } catch (error) {
-          getElement("settingsStatus").textContent = "Could not load settings: " + error.message;
+          getElement("settingsStatus").textContent =
+            "Could not import settings: " + error.message;
           getElement("settingsStatus").hidden = false;
         } finally {
           event.target.value = "";
@@ -2484,14 +2725,8 @@
 
       // Cycle Auto → Light → Dark and update the icon and accessible label.
 
-      function cycleAppearance() {
+      function applyAppearance(currentMode) {
         const modes = ["auto", "light", "dark"],
-          currentMode =
-            modes[
-              (modes.indexOf(document.documentElement.dataset.theme || "auto") +
-                1) %
-                3
-            ],
           nextMode = modes[(modes.indexOf(currentMode) + 1) % 3],
           capitalize = (v) => v[0].toUpperCase() + v.slice(1),
           icons = {
@@ -2511,12 +2746,98 @@
           `${capitalize(currentMode)} · switch to ${capitalize(nextMode)}`;
       }
 
+      function cycleAppearance() {
+        const modes = ["auto", "light", "dark"],
+          currentMode = document.documentElement.dataset.theme || "auto";
+        applyAppearance(modes[(modes.indexOf(currentMode) + 1) % modes.length]);
+        saveBrowserSettings();
+      }
+
+      function saveBrowserSettings() {
+        if (!state) return;
+        try {
+          readInputs();
+          readExportSettings();
+          const settings = captureSettings();
+          validateSettings(settings);
+          localStorage.setItem(
+            BROWSER_SETTINGS_KEY,
+            JSON.stringify({
+              settings,
+              appearance: document.documentElement.dataset.theme || "auto",
+            }),
+          );
+        } catch {
+          // Keep the tool usable when inputs are incomplete or storage is unavailable.
+        }
+      }
+
+      function resetSettings() {
+        applySettings(initialSettings);
+        applyAppearance("auto");
+        getElement("settingsStatus").textContent = "";
+        getElement("settingsStatus").hidden = true;
+        solveAndRender();
+      }
+
       // Keep event wiring in one place; numerical functions do not register listeners.
 
+      function bindChartZoom(plotSvg) {
+        plotSvg.classList.add("zoom-chart");
+        const chartPoint = (event) =>
+          new DOMPoint(event.clientX, event.clientY).matrixTransform(
+            plotSvg.getScreenCTM().inverse(),
+          );
+        const moveZoom = (point) => {
+          const left = Number(plotSvg.dataset.plotLeft),
+            right = Number(plotSvg.dataset.plotRight);
+          getElement("zoom").value =
+            Math.max(0, Math.min(1, (point.x - left) / (right - left))) *
+            ZOOM_SLIDER_MAX;
+          render();
+        };
+        plotSvg.onpointerdown = (event) => {
+          if (!state || event.button !== 0) return;
+          const point = chartPoint(event);
+          if (
+            point.x < Number(plotSvg.dataset.plotLeft) ||
+            point.x > Number(plotSvg.dataset.plotRight) ||
+            point.y < Number(plotSvg.dataset.plotTop) ||
+            point.y > Number(plotSvg.dataset.plotBottom)
+          )
+            return;
+          event.preventDefault();
+          plotSvg.setPointerCapture(event.pointerId);
+          moveZoom(point);
+        };
+        plotSvg.onpointermove = (event) => {
+          if (plotSvg.hasPointerCapture(event.pointerId))
+            moveZoom(chartPoint(event));
+        };
+        plotSvg.onpointerup = (event) => {
+          if (!plotSvg.hasPointerCapture(event.pointerId)) return;
+          moveZoom(chartPoint(event));
+          plotSvg.releasePointerCapture(event.pointerId);
+        };
+      }
+
       function bindEvents() {
-        getElement("saveSettings").onclick = saveSettings;
-        getElement("loadSettings").onclick = () => getElement("settingsFile").click();
-        getElement("settingsFile").onchange = loadSettings;
+        getElement("resetSettings").onclick = resetSettings;
+        document
+          .querySelectorAll("aside select, #sphericalCorrection")
+          .forEach((input) => {
+            input.addEventListener("change", saveBrowserSettings);
+          });
+        for (const branchIndex of [0, 1]) {
+          for (const type of ["motion", "angles", "aperture"]) {
+            bindChartZoom(getElement(type + branchIndex));
+          }
+        }
+        getElement("saveLayout").onclick = saveLayout;
+        getElement("exportSettings").onclick = exportSettings;
+        getElement("importSettings").onclick = () =>
+          getElement("settingsFile").click();
+        getElement("settingsFile").onchange = importSettings;
         getElement("currentFnumber").onchange = handleFNumberChange;
         getElement("currentEfl").onchange = handleEflChange;
         getElement("appearance").onclick = cycleAppearance;
@@ -2568,7 +2889,42 @@
 
       function initialize() {
         renderGroupInputs();
+        initialSettings = captureSettings();
+        try {
+          const saved = JSON.parse(localStorage.getItem(BROWSER_SETTINGS_KEY));
+          if (saved) {
+            restoreSettings(saved.settings);
+            if (["auto", "light", "dark"].includes(saved.appearance)) {
+              applyAppearance(saved.appearance);
+            }
+          }
+        } catch {
+          // Use the initial design when saved settings cannot be restored.
+        }
+        try {
+          const layouts = JSON.parse(localStorage.getItem(SAVED_LAYOUTS_KEY));
+          if (Array.isArray(layouts)) {
+            layouts.forEach((layout) => {
+              if (typeof layout.name !== "string")
+                throw Error("Invalid layout name.");
+              validateSettings(layout.settings);
+              if (!["auto", "light", "dark"].includes(layout.appearance))
+                throw Error("Invalid layout appearance.");
+            });
+            savedLayouts = layouts;
+          }
+        } catch {
+          savedLayouts = [];
+        }
+        renderSavedLayouts();
         bindEvents();
+        let previousWidth = 0;
+        new ResizeObserver(([entry]) => {
+          if (entry.contentRect.width !== previousWidth) {
+            previousWidth = entry.contentRect.width;
+            render();
+          }
+        }).observe(document.querySelector(".solutions"));
         solveAndRender();
       }
 
